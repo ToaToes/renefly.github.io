@@ -64,6 +64,33 @@
     <!-- Future backend data display will go here -->
   </div>
 
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-auth-compat.js"></script>
+
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjBXmXps-wu6qIudSdD_0aGNri6WiM3vU",
+      authDomain: "loginauth-8662e.firebaseapp.com",
+      projectId: "loginauth-8662e",
+      storageBucket: "loginauth-8662e.firebasestorage.app",
+      messagingSenderId: "542087917375",
+      appId: "1:542087917375:web:deb096e402681ac4756d8a",
+      measurementId: "G-DK6XZBH36G"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Protect this page
+    auth.onAuthStateChanged(user => {
+      if (!user || !user.emailVerified) {
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+
 
   <script>
     // Parse URL parameters
@@ -101,5 +128,6 @@
     }, 2000);
     */
   </script>
+  
 </body>
 </html>
