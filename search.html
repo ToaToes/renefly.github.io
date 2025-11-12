@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flight Search</title>
+  <link rel="stylesheet" href="style_search.css" />
+</head>
+<body>
+
+  <h2>航线搜索</h2>
+
+  <form id="flightForm">
+    <label for="flightDate">日期:</label>
+    <input type="date" id="flightDate" name="flightDate" required />
+
+    <label for="departure">出发地:</label>
+    <input type="text" id="departure" name="departure" placeholder="输入出发城市" autocomplete="off" required />
+    <div id="departureResult" ></div>
+
+    <label for="arrival">到达地:</label>
+    <input type="text" id="arrival" name="arrival" placeholder="输入到达城市" autocomplete="off" required />
+    <div id="arrivalResult" ></div>
+
+    
+    <!-- Class Dropdown -->
+    <div class="dropdown-checkbox">
+      <label for="class-select">舱等:</label>
+      <button type="button" id="class-button" onclick="toggleDropdown('class')">请选择舱等 (默认全选)</button>
+      <div class="options" id="class-options">
+        <!-- 默认全选 -->
+        <!-- <label><input type="checkbox" value="all" onchange="updateButtonText('class')"> 默认全部</label> -->
+        <label><input type="checkbox" value="economy" onchange="updateButtonText('class')"> 经济</label>
+        <label><input type="checkbox" value="super_economy" onchange="updateButtonText('class')"> 超级经济</label>
+        <label><input type="checkbox" value="business" onchange="updateButtonText('class')"> 商务</label>
+        <label><input type="checkbox" value="first" onchange="updateButtonText('class')"> 头等</label>
+      </div>
+    </div>
+
+
+    <!-- Airline Dropdown -->
+    <div class="dropdown-checkbox">
+      <label for="airline-select">航司:</label>
+      <button type="button" id="airline-button" onclick="toggleDropdown('airline')">请选择航空公司 (默认全选)</button>
+      <div class="options" id="airline-options">
+        <!-- 默认全选 -->
+        <!-- <label><input type="checkbox" value="all" onchange="updateButtonText('airline')"> 默认全部</label> -->
+        <label><input type="checkbox" value="AA" onchange="updateButtonText('airline')"> 美国航空 - AA</label>
+        <label><input type="checkbox" value="AS" onchange="updateButtonText('airline')"> 阿拉斯加航空 - AS</label>
+        <label><input type="checkbox" value="BA" onchange="updateButtonText('airline')"> 英国航空 - BA</label>
+        <label><input type="checkbox" value="AF" onchange="updateButtonText('airline')"> 法国航空 - AF</label>
+        <label><input type="checkbox" value="UA" onchange="updateButtonText('airline')"> 美联航 - UA</label>
+        <label><input type="checkbox" value="AC" onchange="updateButtonText('airline')"> 加拿大航空 - AC</label>
+        <label><input type="checkbox" value="CX" onchange="updateButtonText('airline')"> 国泰航空 - CX</label>
+      </div>
+    </div>
+
+
+    <label for="directFlight" style="margin-bottom: 15px; display: inline-block;">
+      <input type="checkbox" id="directFlight" name="directFlight" />
+      仅限直飞
+    </label>
+
+    <button type="submit" id="submitBtn">搜索航班</button>
+  </form>
+
+  <!-- associate with IATA code, from json -->
+  <script src="IATA_association.js"></script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-auth-compat.js"></script>
+
+  <!-- Firebase Config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjBXmXps-wu6qIudSdD_0aGNri6WiM3vU",
+      authDomain: "loginauth-8662e.firebaseapp.com",
+      projectId: "loginauth-8662e",
+      storageBucket: "loginauth-8662e.firebasestorage.app",
+      messagingSenderId: "542087917375",
+      appId: "1:542087917375:web:deb096e402681ac4756d8a",
+      measurementId: "G-DK6XZBH36G"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Protect this page
+    auth.onAuthStateChanged(user => {
+      if (!user || !user.emailVerified) {
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+
+  <script>
+    function toggleDropdown(type) {
+      const classOptions = document.getElementById("class-options");
+      const airlineOptions = document.getElementById("airline-options");
+
+      if (type === "class") {
+        classOptions.style.display = classOptions.style.display === "block" ? "none" : "block";
+        airlineOptions.style.display = "none"; // Close the other
+      } else if (type === "airline") {
+        airlineOptions.style.display = airlineOptions.style.display === "block" ? "none" : "block";
+        classOptions.style.display = "none"; // Close the other
+      }
+    }
+
+    function updateButtonText(type) {
+      let checkboxes, button, placeholder;
+
+      if (type === "class") {
+        checkboxes = document.querySelectorAll('#class-options input[type="checkbox"]');
+        button = document.getElementById("class-button");
+        placeholder = '请选择舱等 (默认全选)';
+      } else if (type === "airline") {
+        checkboxes = document.querySelectorAll('#airline-options input[type="checkbox"]');
+        button = document.getElementById("airline-button");
+        placeholder = '请选择航空公司 (默认全选)';
+      }
+
+      const selected = [];
+      checkboxes.forEach(cb => {
+        if (cb.checked) {
+          selected.push(cb.parentNode.textContent.trim());
+        }
+      });
+
+      button.textContent = selected.length > 0 ? selected.join(', ') : placeholder;
+    }
+
+
+    // Close any dropdown when clicking outside
+    window.addEventListener('click', function (e) {
+      const dropdowns = document.querySelectorAll('.dropdown-checkbox');
+      dropdowns.forEach(dropdown => {
+        if (!dropdown.contains(e.target)) {
+          const options = dropdown.querySelector('.options');
+          if (options) options.style.display = 'none';
+        }
+      });
+    });
+
+  </script>
+
+  <!-- Press enter key to hit button -->
+  <script>
+    // Let the form handle its own submission
+    document.getElementById("flightForm").addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        // Only block Enter when dropdowns are open
+        const classOptions = document.getElementById("class-options");
+        const airlineOptions = document.getElementById("airline-options");
+
+        if (classOptions.style.display === "block" || airlineOptions.style.display === "block") {
+          event.preventDefault(); // prevent accidental submits when dropdown is open
+        } else {
+          event.preventDefault(); // stop default to control it
+          document.getElementById("submitBtn").click(); // simulate submit button click
+        }
+
+      }
+    });
+  </script>
+
+
+  <script>
+    const flightDateInput = document.getElementById("flightDate");
+
+    // Detect date change, then close the picker automatically
+    flightDateInput.addEventListener("change", () => {
+      // Blur removes focus, which closes the picker UI
+      flightDateInput.blur(); // Close date picker
+      document.activeElement.blur(); // Also close virtual keyboard
+    });
+  </script>
+
+
+  <!-- submit -->
+  <script>
+    document.getElementById("flightForm").addEventListener("submit", function (e) {
+      e.preventDefault(); // Prevent default submission
+
+      // Optional: gather form data if needed
+      const formData = new FormData(this);
+      const queryParams = new URLSearchParams(formData).toString();
+
+      // Redirect to loading page with parameters
+      window.location.href = "loading.html?" + queryParams;
+    });
+  </script>
+
+
+</body>
+</html>

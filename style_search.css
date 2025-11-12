@@ -1,0 +1,106 @@
+/* Apply a universal box-sizing rule */
+* {
+    box-sizing: border-box;
+}
+
+/* Center the whole page content */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f9f9f9;
+    height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Title */
+h2 {
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+}
+
+/* Form container */
+form {
+    background: #fff;
+    padding: 25px 30px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Labels */
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #444;
+}
+
+/* Input and dropdown buttons styling */
+input[type="text"],
+input[type="date"],
+button[type="button"],
+button[type="submit"],
+.dropdown-checkbox button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    display: block;
+}
+
+/* Submit button styling */
+button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Dropdown container */
+.dropdown-checkbox {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+/* Dropdown options */
+.dropdown-checkbox .options {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Dropdown checkbox items */
+.dropdown-checkbox .options label {
+    display: block;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.dropdown-checkbox .options label:hover {
+    background-color: #f9f9f9;
+}
+
+/* Align "仅限直达" checkbox */
+#directFlight {
+    margin-right: 8px;
+}

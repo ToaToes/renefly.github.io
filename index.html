@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Firebase Auth</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>Account Authentication</h2>
+    
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    
+    <button id="loginBtn">Login</button>
+    <!-- Hide -->
+    <!-- <button id="signupBtn">Sign Up</button> -->
+    
+    <p id="errorMsg"></p>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-auth-compat.js"></script>
+
+  <!-- Your Firebase config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjBXmXps-wu6qIudSdD_0aGNri6WiM3vU",
+      authDomain: "loginauth-8662e.firebaseapp.com",
+      projectId: "loginauth-8662e",
+      storageBucket: "loginauth-8662e.firebasestorage.app",
+      messagingSenderId: "542087917375",
+      appId: "1:542087917375:web:deb096e402681ac4756d8a",
+      measurementId: "G-DK6XZBH36G"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
+  <!-- Press enter key to hit button -->
+  <script>
+    document.getElementById("password").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        // prevent the default action to avoid form submission
+        event.preventDefault();
+        // Trigger the button element with a click
+        document.getElementById("loginBtn").click();
+      }
+    });
+  </script>
+
+  <script src="app.js"></script>
+</body>
+</html>

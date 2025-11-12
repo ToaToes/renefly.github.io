@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>航班搜索结果</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background-color: #f9f9fb;
+      margin: 0;
+      padding: 30px;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    .selection-summary {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: 20px auto;
+    }
+
+    .selection-summary h3 {
+      margin-bottom: 10px;
+    }
+
+    .selection-summary ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .selection-summary li {
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .results-container {
+      text-align: center;
+      margin-top: 40px;
+      color: #777;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h2>航班搜索结果</h2>
+
+  <div class="selection-summary">
+    <h3>您的搜索条件：</h3>
+    <ul id="selectionList"></ul>
+  </div>
+
+  <!-- first hide he part -->
+  <!-- Placeholder for backend flight results -->
+  <div class="results-container" id="results">
+    <!-- <p>正在从服务器加载航班信息，请稍候...</p> -->
+    <!-- Future backend data display will go here -->
+  </div>
+
+
+  <script>
+    // Parse URL parameters
+    const params = new URLSearchParams(window.location.search);
+
+    // Helper to safely get value or default
+    const getValue = (key, fallback = "未选择") => {
+      const val = params.get(key);
+      return val ? decodeURIComponent(val) : fallback;
+    };
+
+    // Prepare displayed data
+    const selectionData = {
+      "日期": getValue("flightDate"),
+      "出发地": getValue("departure"),
+      "到达地": getValue("arrival"),
+      "舱等": getValue("class", "全部"),
+      "航司": getValue("airline", "全部"),
+      "仅限直飞": params.get("directFlight") ? "是" : "否"
+    };
+
+    // Render selection summary
+    const list = document.getElementById("selectionList");
+    for (const [label, value] of Object.entries(selectionData)) {
+      const li = document.createElement("li");
+      li.textContent = `${label}: ${value}`;
+      list.appendChild(li);
+    }
+
+    // Simulate backend loading (you’ll replace this with actual data fetch)
+    // testing only
+    /*
+    setTimeout(() => {
+      document.getElementById("results").textContent = "✅ 已成功加载航班结果！（此处可显示来自后端的航班数据）";
+    }, 2000);
+    */
+  </script>
+</body>
+</html>

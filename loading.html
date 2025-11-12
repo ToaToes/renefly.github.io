@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>加载中...</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f5f6fa;
+      font-family: Arial, sans-serif;
+    }
+
+    .spinner {
+      border: 6px solid #ddd;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    p {
+      margin-top: 20px;
+      color: #333;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="spinner"></div>
+  <p>正在加载航班信息，请稍候...</p>
+
+  <script>
+    // Simulate backend data gathering for ~20 seconds
+    setTimeout(() => {
+      // Redirect to results page (you can pass query params if needed)
+      const params = window.location.search;
+      window.location.href = "results.html" + params;
+    }, 20000); // 20 seconds
+  </script>
+</body>
+</html>
