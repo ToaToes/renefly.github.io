@@ -5,8 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flight Search</title>
   <link rel="stylesheet" href="style_search.css" />
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-auth-compat.js"></script>
+
+  <!-- Firebase Config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjBXmXps-wu6qIudSdD_0aGNri6WiM3vU",
+      authDomain: "loginauth-8662e.firebaseapp.com",
+      projectId: "loginauth-8662e",
+      storageBucket: "loginauth-8662e.firebasestorage.app",
+      messagingSenderId: "542087917375",
+      appId: "1:542087917375:web:deb096e402681ac4756d8a",
+      measurementId: "G-DK6XZBH36G"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Protect this page
+    auth.onAuthStateChanged(user => {
+      if (!user || !user.emailVerified) {
+        window.location.href = "index.html";
+      } else {
+        document.getElementById("auth-blocker").style.display = "none"; // hide blocker
+      }
+    });
+  </script>
+
 </head>
 <body>
+
+  <div id="auth-blocker" style="
+      position: fixed;
+      inset: 0;
+      background: white;
+      z-index: 99999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+    ">
+      Checking authentication…
+  </div>
 
   <h2>航线搜索</h2>
 
@@ -67,33 +110,6 @@
 
   <!-- associate with IATA code, from json -->
   <script src="IATA_association.js"></script>
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-auth-compat.js"></script>
-
-  <!-- Firebase Config -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBjBXmXps-wu6qIudSdD_0aGNri6WiM3vU",
-      authDomain: "loginauth-8662e.firebaseapp.com",
-      projectId: "loginauth-8662e",
-      storageBucket: "loginauth-8662e.firebasestorage.app",
-      messagingSenderId: "542087917375",
-      appId: "1:542087917375:web:deb096e402681ac4756d8a",
-      measurementId: "G-DK6XZBH36G"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    // Protect this page
-    auth.onAuthStateChanged(user => {
-      if (!user || !user.emailVerified) {
-        window.location.href = "index.html";
-      }
-    });
-  </script>
 
   <script>
     function toggleDropdown(type) {
