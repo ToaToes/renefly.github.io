@@ -30,10 +30,10 @@
       <div class="options" id="class-options">
         <!-- 默认全选 -->
         <!-- <label><input type="checkbox" value="all" onchange="updateButtonText('class')"> 默认全部</label> -->
-        <label><input type="checkbox" value="economy" onchange="updateButtonText('class')"> 经济</label>
-        <label><input type="checkbox" value="super_economy" onchange="updateButtonText('class')"> 超级经济</label>
-        <label><input type="checkbox" value="business" onchange="updateButtonText('class')"> 商务</label>
-        <label><input type="checkbox" value="first" onchange="updateButtonText('class')"> 头等</label>
+        <label><input type="checkbox" name="class" value="economy" onchange="updateButtonText('class')" checked> 经济</label>
+        <label><input type="checkbox" name="class" value="super_economy" onchange="updateButtonText('class')" checked> 超级经济</label>
+        <label><input type="checkbox" name="class" value="business" onchange="updateButtonText('class')" checked> 商务</label>
+        <label><input type="checkbox" name="class" value="first" onchange="updateButtonText('class')" checked> 头等</label>
       </div>
     </div>
 
@@ -45,13 +45,13 @@
       <div class="options" id="airline-options">
         <!-- 默认全选 -->
         <!-- <label><input type="checkbox" value="all" onchange="updateButtonText('airline')"> 默认全部</label> -->
-        <label><input type="checkbox" value="AA" onchange="updateButtonText('airline')"> 美国航空 - AA</label>
-        <label><input type="checkbox" value="AS" onchange="updateButtonText('airline')"> 阿拉斯加航空 - AS</label>
-        <label><input type="checkbox" value="BA" onchange="updateButtonText('airline')"> 英国航空 - BA</label>
-        <label><input type="checkbox" value="AF" onchange="updateButtonText('airline')"> 法国航空 - AF</label>
-        <label><input type="checkbox" value="UA" onchange="updateButtonText('airline')"> 美联航 - UA</label>
-        <label><input type="checkbox" value="AC" onchange="updateButtonText('airline')"> 加拿大航空 - AC</label>
-        <label><input type="checkbox" value="CX" onchange="updateButtonText('airline')"> 国泰航空 - CX</label>
+        <label><input type="checkbox" name="airline" value="AA" onchange="updateButtonText('airline')" checked> 美国航空 - AA</label>
+        <label><input type="checkbox" name="airline" value="AS" onchange="updateButtonText('airline')" checked> 阿拉斯加航空 - AS</label>
+        <label><input type="checkbox" name="airline" value="BA" onchange="updateButtonText('airline')" checked> 英国航空 - BA</label>
+        <label><input type="checkbox" name="airline" value="AF" onchange="updateButtonText('airline')" checked> 法国航空 - AF</label>
+        <label><input type="checkbox" name="airline" value="UA" onchange="updateButtonText('airline')" checked> 美联航 - UA</label>
+        <label><input type="checkbox" name="airline" value="AC" onchange="updateButtonText('airline')" checked> 加拿大航空 - AC</label>
+        <label><input type="checkbox" name="airline" value="CX" onchange="updateButtonText('airline')" checked> 国泰航空 - CX</label>
       </div>
     </div>
 
@@ -108,29 +108,6 @@
       }
     }
 
-    function updateButtonText(type) {
-      let checkboxes, button, placeholder;
-
-      if (type === "class") {
-        checkboxes = document.querySelectorAll('#class-options input[type="checkbox"]');
-        button = document.getElementById("class-button");
-        placeholder = '请选择舱等 (默认全选)';
-      } else if (type === "airline") {
-        checkboxes = document.querySelectorAll('#airline-options input[type="checkbox"]');
-        button = document.getElementById("airline-button");
-        placeholder = '请选择航空公司 (默认全选)';
-      }
-
-      const selected = [];
-      checkboxes.forEach(cb => {
-        if (cb.checked) {
-          selected.push(cb.parentNode.textContent.trim());
-        }
-      });
-
-      button.textContent = selected.length > 0 ? selected.join(', ') : placeholder;
-    }
-
 
     // Close any dropdown when clicking outside
     window.addEventListener('click', function (e) {
@@ -180,16 +157,87 @@
 
   <!-- submit -->
   <script>
+    console.log("script loaded");
+    // ----------------------
+    // 1. Block form submit when checkbox group is empty
+    // ----------------------
     document.getElementById("flightForm").addEventListener("submit", function (e) {
-      e.preventDefault(); // Prevent default submission
 
-      // Optional: gather form data if needed
+      e.preventDefault(); // ← 确保先阻止默认刷新
+
+      const noClassChecked = document.querySelectorAll('#class-options input[type="checkbox"]:checked').length === 0;
+      const noAirlineChecked = document.querySelectorAll('#airline-options input[type="checkbox"]:checked').length === 0;
+
+      if (noClassChecked || noAirlineChecked) {
+        
+
+        if (noClassChecked) {
+          document.getElementById("class-button").textContent = "请至少选择一个舱等";
+          alert("请至少选择一个舱等");
+        }
+        if (noAirlineChecked) {
+          document.getElementById("airline-button").textContent = "请至少选择一个航空公司";
+          alert("请至少选择一个航空公司");
+        }
+
+        return; // stop form
+      }
+
+      // ----------------------
+      // submit 
+      // ----------------------
       const formData = new FormData(this);
-      const queryParams = new URLSearchParams(formData).toString();
+      const params = new URLSearchParams();
 
-      // Redirect to loading page with parameters
-      window.location.href = "loading.html?" + queryParams;
+      ["class", "airline"].forEach(name => {
+        const values = formData.getAll(name);
+        if (values.length === 0) {
+          params.append(name, "all");
+        } else {
+          values.forEach(v => params.append(name, v));
+        }
+      });
+
+      ["flightDate", "departure", "arrival", "directFlight"].forEach(name => {
+        if (formData.has(name)) {
+          params.append(name, formData.get(name));
+        }
+      });
+
+      console.log("URL params:", params.toString());
+
+      window.location.href = "loading.html?" + params.toString();
     });
+
+    // ----------------------
+    // 2. Update button text when checkboxes change
+    // ----------------------
+    function updateButtonText(type) {
+      let checkboxes, button, emptyMessage;
+
+      if (type === "class") {
+        checkboxes = document.querySelectorAll('#class-options input[type="checkbox"]');
+        button = document.getElementById("class-button");
+        emptyMessage = "请至少选择一个舱等";
+      } else if (type === "airline") {
+        checkboxes = document.querySelectorAll('#airline-options input[type="checkbox"]');
+        button = document.getElementById("airline-button");
+        emptyMessage = "请至少选择一个航空公司";
+      }
+
+      const selected = [];
+      checkboxes.forEach(cb => {
+        if (cb.checked) {
+          selected.push(cb.parentNode.textContent.trim());
+        }
+      });
+
+      if (selected.length > 0) {
+        button.textContent = selected.join(', ');
+      } else {
+        button.textContent = emptyMessage;
+      }
+    }
   </script>
 
 
