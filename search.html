@@ -11,8 +11,9 @@
   <h2>航线搜索</h2>
 
   <form id="flightForm">
+    <!-- Ban user from choosing previous date before today -->
     <label for="flightDate">日期:</label>
-    <input type="date" id="flightDate" name="flightDate" required />
+    <input type="date" id="flightDate" name="flightDate" min="" required />
 
     <label for="departure">出发地:</label>
     <input type="text" id="departure" name="departure" placeholder="输入出发城市" autocomplete="off" required />
