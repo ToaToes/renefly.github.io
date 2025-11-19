@@ -155,6 +155,25 @@
     });
   </script>
 
+  
+  <script>
+    // set date min is today
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("flightDate").setAttribute("min", today);
+
+
+    // ban user manually input previous date
+    document.getElementById("flightForm").addEventListener("submit", function (e) {
+      const inputDate = document.getElementById("flightDate").value;
+    
+      if (inputDate < today) {
+        e.preventDefault();
+        alert("不能选择过去的日期！");
+        return;
+      }
+    });
+  </script>
+
 
   <!-- submit -->
   <script>
