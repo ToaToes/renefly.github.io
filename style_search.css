@@ -104,3 +104,10 @@ button[type="submit"]:hover {
 #directFlight {
     margin-right: 8px;
 }
+
+/* prevent uncheckbox */
+.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: grey
+}
