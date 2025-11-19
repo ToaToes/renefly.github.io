@@ -48,21 +48,6 @@
       font-size: 18px;
     }
   </style>
-</head>
-<body>
-  <h2>航班搜索结果</h2>
-
-  <div class="selection-summary">
-    <h3>您的搜索条件：</h3>
-    <ul id="selectionList"></ul>
-  </div>
-
-  <!-- first hide he part -->
-  <!-- Placeholder for backend flight results -->
-  <div class="results-container" id="results">
-    <!-- <p>正在从服务器加载航班信息，请稍候...</p> -->
-    <!-- Future backend data display will go here -->
-  </div>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js"></script>
@@ -87,9 +72,26 @@
     auth.onAuthStateChanged(user => {
       if (!user || !user.emailVerified) {
         window.location.href = "index.html";
+      } else {
+        document.getElementById("auth-blocker").style.display = "none"; // hide blocker
       }
     });
   </script>
+</head>
+<body>
+  <h2>航班搜索结果</h2>
+
+  <div class="selection-summary">
+    <h3>您的搜索条件：</h3>
+    <ul id="selectionList"></ul>
+  </div>
+
+  <!-- first hide he part -->
+  <!-- Placeholder for backend flight results -->
+  <div class="results-container" id="results">
+    <!-- <p>正在从服务器加载航班信息，请稍候...</p> -->
+    <!-- Future backend data display will go here -->
+  </div>
 
 
   <script>
@@ -107,8 +109,17 @@
       "日期": getValue("flightDate"),
       "出发地": getValue("departure"),
       "到达地": getValue("arrival"),
-      "舱等": getValue("class", "全部"),
-      "航司": getValue("airline", "全部"),
+      
+      // multiple values support
+      "舱等": (() => {
+        const classes = params.getAll("class");
+        return classes.length > 0 ? classes.join(", ") : "全部";
+      })(),
+
+      "航司": (() => {
+        const airlines = params.getAll("airline");
+        return airlines.length > 0 ? airlines.join(", ") : "全部";
+      })(),
       "仅限直飞": params.get("directFlight") ? "是" : "否"
     };
 
