@@ -26,7 +26,7 @@
     const auth = firebase.auth();
 
     // ! Force no session persistence (always ask login)
-    auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
+    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
       .then(() => {
         console.log("Persistence set to NONE (in-memory only)");
       })
@@ -42,6 +42,7 @@
         document.getElementById("auth-blocker").style.display = "none"; // hide blocker
       }
     });
+
   </script>
 
 </head>
@@ -251,6 +252,7 @@
 
       console.log("URL params:", params.toString());
 
+      // contains flight info
       window.location.href = "loading.html?" + params.toString();
     });
 
