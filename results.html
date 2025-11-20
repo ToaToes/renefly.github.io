@@ -53,7 +53,6 @@
   <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-auth-compat.js"></script>
 
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBjBXmXps-wu6qIudSdD_0aGNri6WiM3vU",
@@ -68,6 +67,15 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
+    // ! Force no session persistence (always ask login)
+    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+      .then(() => {
+        console.log("Persistence set to NONE (in-memory only)");
+      })
+      .catch((error) => {
+        console.error("Failed to set persistence:", error);
+    });
+
     // Protect this page
     auth.onAuthStateChanged(user => {
       if (!user || !user.emailVerified) {
@@ -78,6 +86,7 @@
     });
   </script>
 </head>
+
 <body>
   <h2>航班搜索结果</h2>
 
