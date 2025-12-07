@@ -70,3 +70,46 @@ if __name__ == "__main__":
 # Run the server
 CMD ["uvicorn", "public_api:app", "--host", "0.0.0.0", "--port", "8001"]
 ```
+
+## Clean rebuild and restart:
+1. cut the port
+```
+# Remove the conflicting container
+docker rm -f public-api
+
+# Or if that doesn't work, use the container ID shown in the error
+docker rm -f ac812d5095dc1e860d48a790c36b35cbf5391839f482eb226d79f0ed2e837464
+```
+
+2. check port usage
+```
+# Find what's using port 8001
+lsof -i :8001
+
+# If it shows a process, kill it
+lsof -ti:8001 | xargs kill -9 2>/dev/null
+
+# OR check if it's another Docker container
+docker ps --format "table {{.Names}}\t{{.Ports}}" | grep 8001
+
+```
+or use different port
+```
+docker run -d -p 8002:8001 --name public-api public-api:latest
+```
+
+3. rerun, last one
+```
+# Remove any existing public-api container
+docker rm -f public-api 2>/dev/null || true
+
+# Check for other containers using port 8001
+docker ps -a --format "table {{.Names}}\t{{.Ports}}" | grep 8001
+
+# Stop any container using port 8001
+docker stop $(docker ps -q --filter "publish=8001") 2>/dev/null
+docker rm $(docker ps -aq --filter "publish=8001") 2>/dev/null
+
+# Now run fresh
+docker run -d -p 8001:8001 --name public-api public-api:latest
+```
