@@ -18,3 +18,23 @@ Public server aggregates results from all private servers<br>
 Sends final response to the user<br>
 
 This ensures only one publicly exposed endpoint, and all internal services stay isolated and protected.
+
+
+```
+Structure:
+
+project/
+│
+├── public_api/
+│   ├── app.py
+│   ├── requirements.txt
+│   └── Dockerfile
+│
+├── search_service/
+│   ├── app.py
+│   ├── requirements.txt
+│   └── Dockerfile
+│
+└── docker-compose.yml
+
+```
