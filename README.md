@@ -113,3 +113,14 @@ docker rm $(docker ps -aq --filter "publish=8001") 2>/dev/null
 # Now run fresh
 docker run -d -p 8001:8001 --name public-api public-api:latest
 ```
+
+4. To stop the IN Use docker container
+```
+# list all containers
+docker ps -a
+
+docker stop <container_id>
+
+# remove all containers that not in use
+docker image prune -a
+```
