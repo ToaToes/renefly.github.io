@@ -132,3 +132,16 @@ docker stop <container_id>
 # remove all containers that not in use
 docker image prune -a
 ```
+
+5. Firebase auth 401 unauthorized <br>
+Docker containers by default use UTC time and don't sync with host time. When Firebase checks token expiration, it uses container time, which thinks it's already tomorrow, making valid tokens appear expired. <br>
+Add clock_tolerance=86400 to auth.verify_id_token() call.<br>
+```
+# Clock skew:
+# Docker container time might be off:
+
+# Check container time
+docker exec public-api date
+# Compare with host time
+date
+```
