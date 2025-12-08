@@ -52,6 +52,8 @@ docker run -d -p 8001:8001 public-api:latest  # Use -d for detached mode
 When you run with -it, the container attaches to your terminal<br>
 ```
 docker run -it -p 8001:8001 public_api:latest
+
+without name restriction, container will be given random names
 ```
 After processing one request, if there's an issue or the script completes, it exits<br>
 Using -d (detached) mode runs it in the background as a proper server<br>
