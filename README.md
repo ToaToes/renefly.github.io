@@ -42,6 +42,12 @@ project/
 
 ### USING Docker
 
+To Check Logs
+```
+docker logs -f public-api 
+```
+
+
 ```
 # Build docker image
 docker build -t public-api:latest .
