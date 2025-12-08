@@ -145,3 +145,17 @@ docker exec public-api date
 # Compare with host time
 date
 ```
+
+
+6. TO TEST backend alone
+```
+# in terminal
+TOKEN="eyJhbGciOiJSUzI1NiIsImtpZCI6Ijk1MTg5MTkxMTA3NjA1NDM0NGUxNWUyNTY0MjViYjQyNWVlYjNhNWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vbG9naW5hdXRoLTg2NjJlIiwiYXVkIjoibG9naW5hdXRoLTg2NjJlIiwiYXV0aF90aW1lIjoxNzY1MTc4NDMzLCJ1c2VyX2lkIjoiU2s3SjU5SUJNaVF0SUdscG1nekhQR0RCMUtJMyIsInN1YiI6IlNrN0o1OUlCTWlRdElHbHBtZ3pIUEdEQjFLSTMiLCJpYXQiOjE3NjUxNzg0NjIsImV4cCI6MTc2NTE4MjA2MiwiZW1haWwiOiJleHJpdmVpdkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJlbWFpbCI6WyJleHJpdmVpdkBnbWFpbC5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.J7SOA4uS-4DAHzHyHPnFGgPDE4xIT-1Fa3F8-gmeFgbIzU8LSZmKGuuw5ropxhj5_a3TkaS8Me2iakYhUWrvlctqQdqzkxaQ3JdpnilZ_S2yT1rnsl0c0ZkWdnSg5rAZh3lRbP_Un9R4k3Q7cEVzd_eY_B3VMvhyk9LRTwOPKUByczkjC689mKpJfHINWi7jLWwucqfdpFRxRaZSzZ1oITjFXZy8rBohjs0SOvLahQcHAxT-CvxVgS7Rj9YWMe3YNJJT7xMeZpyhbao9Se5ajP0VVq3zpjL-50VBI9-s7ZcK_DOnXpVTVwXiKAWDHGWM3T1JZeMSZIdfPKJduGOkow"
+
+curl -X POST http://localhost:8001/search \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"date":"2026-01-10","origin":"LAX","destination":"HKG","airline":"UA","cabin_class":"business","DirectFlight":true}' \
+  -s | python3 -m json.tool
+
+```
