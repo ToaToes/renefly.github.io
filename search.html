@@ -85,7 +85,7 @@
         <!-- 默认全选 -->
         <!-- <label><input type="checkbox" value="all" onchange="updateButtonText('class')"> 默认全部</label> -->
         <label><input type="checkbox" name="class" value="economy" onchange="updateButtonText('class')" checked> 经济</label>
-        <label><input type="checkbox" name="class" value="super_economy" onchange="updateButtonText('class')" checked> 超级经济</label>
+        <label><input type="checkbox" name="class" value="premium_economy" onchange="updateButtonText('class')" checked> 超级经济</label>
         <label><input type="checkbox" name="class" value="business" onchange="updateButtonText('class')" checked> 商务</label>
         <label><input type="checkbox" name="class" value="first" onchange="updateButtonText('class')" checked> 头等</label>
       </div>
@@ -194,9 +194,9 @@
   <script>
     console.log("script loaded");
     // ----------------------
-    // 1. Block form submit when checkbox group is empty
+    // 1. Form submit with validation + API request + redirect
     // ----------------------
-    document.getElementById("flightForm").addEventListener("submit", function (e) {
+    document.getElementById("flightForm").addEventListener("submit", async function (e) {
 
       e.preventDefault(); // ← 确保先阻止默认刷新
 
@@ -218,20 +218,15 @@
         return; // stop form
       }
 
-      // ban user manually input previous date
-      document.getElementById("flightForm").addEventListener("submit", function (e) {
-        const inputDate = document.getElementById("flightDate").value;
-        const today = new Date().toISOString().split("T")[0];
-        if (inputDate < today) {
-          e.preventDefault();
-          alert("不能选择过去的日期！");
-          return;
-        }
-      });
+      // date can not in the past
+      const inputDate = document.getElementById("flightDate").value;
+      const today = new Date().toISOString().split("T")[0];
+      if (inputDate < today) {
+        alert("不能选择过去的日期！");
+        return;
+      }
 
-      // ----------------------
-      // submit 
-      // ----------------------
+      // Build URL Params
       const formData = new FormData(this);
       const params = new URLSearchParams();
 
@@ -252,8 +247,46 @@
 
       console.log("URL params:", params.toString());
 
-      // contains flight info
+      // Build JSON payload for backend
+      const payload = {
+        date: formData.get("flightDate"),
+        origin: formData.get("departure"),
+        destination: formData.get("arrival"),
+        airline: Array.from(document.querySelectorAll('#airline-options input[type="checkbox"]:checked')).map(cb => cb.value).join(",") || null,
+        cabin_class: Array.from(document.querySelectorAll('#class-options input[type="checkbox"]:checked')).map(cb => cb.value).join(",") || null,
+        DirectFlight: formData.get("directFlight") ? true : false
+      };
+
+      console.log("Payload JSON:", payload);
+
+      // --------------------
+      // Call backend API
+      // --------------------
+      let apiResult = null;
+      try {
+        const response = await fetch("http://192.168.1.81:8001/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        apiResult = await response.json();
+
+      } catch (err) {
+        console.error("Error fetching flights:", err);
+        alert("Failed to fetch flights. Check console.");
+        return;
+      }
+
+      // --------------------
+      // Save API result to sessionStorage
+      // --------------------
+      sessionStorage.setItem("flight_result", JSON.stringify(apiResult));
+
+      // --------------------
+      // Redirect WITH PARAMS
+      // --------------------
       window.location.href = "loading.html?" + params.toString();
+    
     });
 
     // ----------------------
@@ -286,7 +319,102 @@
       }
     }
   </script>
+    
+  <script>
+    //Build JSON payload
+    document.getElementById("flightForm").addEventListener("submit", async function (e) {
+      e.preventDefault(); // stop default form submit
 
+      // Collect form data
+      const formData = new FormData(this);
+
+      const flightDate = formData.get("flightDate");
+      const departure = formData.get("departure");
+      const arrival = formData.get("arrival");
+
+      // Get checked classes
+      const classes = Array.from(document.querySelectorAll('#class-options input[type="checkbox"]:checked'))
+                            .map(cb => cb.value)
+                            .join(","); // backend expects a comma-separated string
+
+      // Get checked airlines
+      const airlines = Array.from(document.querySelectorAll('#airline-options input[type="checkbox"]:checked'))
+                            .map(cb => cb.value)
+                            .join(",");
+
+      // Check if direct flight
+      const directFlight = formData.get("directFlight") ? true : false;
+
+
+      const payload = {
+        date: flightDate,
+        origin: departure,
+        destination: arrival,
+        airline: airlines || null,
+        cabin_class: classes || null,
+        DirectFlight: directFlight
+      };
+
+      console.log("Payload JSON:", payload);
+
+      // Save payload ONLY — DO NOT SEND REQUEST HERE
+      sessionStorage.setItem("flight_payload", JSON.stringify(payload));
+
+      // Build URL params for results display
+      const params = new URLSearchParams(new FormData(this)).toString();
+
+      // Redirect to loading page
+      window.location.href = "loading.html?" + params;
+
+
+
+      /*
+      Move to loading.html
+
+      // Send JSON to FastAPI
+      try {
+
+        // SAFELY handle backend verification
+        const user = firebase.auth().currentUser;
+
+        // Here or check if user log in or not
+
+        const idToken = await user.getIdToken(true); // true forces refresh
+
+        const response = await fetch("http://192.168.1.81:8001/search", {  // change testing IP
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + idToken.trim()
+          },
+          body: JSON.stringify(payload)
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+            console.log('Response ok', response.ok);
+
+            if (!response.ok){
+              throw new Error('HTTP error! status: ${response.status}');
+            }
+
+            return response.json();
+          }
+        );
+
+        const result = await response.json();
+        console.log("API response:", result);
+
+        // You can render results on the page instead of redirecting
+        // alert(`Found ${result.results.length} flights`);
+
+      } catch (err) {
+        console.error("Error fetching flights:", err);
+        alert("Failed to fetch flights. Check console.");
+      }*/
+    });
+
+  </script>
 
 </body>
 </html>
