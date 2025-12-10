@@ -47,7 +47,14 @@
       color: #777;
       font-size: 18px;
     }
+
+    .mild {
+      font-weight: 600; /* semibold (between normal and strong) */
+      color: #333;
+    }
   </style>
+
+  <script src="mapping.js"></script>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js"></script>
@@ -83,11 +90,22 @@
       } else {
         document.getElementById("auth-blocker").style.display = "none"; // hide blocker
       }
+
+      if (!sessionStorage.getItem("flight_result")) {
+        alert("You cannot enter this page directly.");
+        window.location.href = "search.html";
+        return;
+      }
+
     });
   </script>
 </head>
 
 <body>
+
+  <!-- Auth blocker element -->
+  <div id="auth-blocker" style="display: block;"></div>
+
   <h2>航班搜索结果</h2>
 
   <div class="selection-summary">
@@ -121,15 +139,15 @@
       
       // multiple values support
       "舱等": (() => {
-        const classes = params.getAll("class");
+        const classes = params.getAll("class").map(cls => CLASS_MAP[cls] || cls);
         return classes.length > 0 ? classes.join(", ") : "全部";
       })(),
 
       "航司": (() => {
-        const airlines = params.getAll("airline");
+        const airlines = params.getAll("airline").map(a => AIRLINE_MAP[a] || a);
         return airlines.length > 0 ? airlines.join(", ") : "全部";
       })(),
-      "仅限直飞": params.get("directFlight") ? "是" : "否"
+      "直飞": params.get("directFlight") ? "是" : "否"
     };
 
     // Render selection summary
@@ -138,6 +156,54 @@
       const li = document.createElement("li");
       li.textContent = `${label}: ${value}`;
       list.appendChild(li);
+    }
+
+
+    // ----------------------------------------------------------
+    // ADDED — load API results from sessionStorage
+    // ----------------------------------------------------------
+
+    const resultContainer = document.getElementById("results");
+    const stored = sessionStorage.getItem("flight_result");
+
+    if (!stored) {
+      resultContainer.innerHTML = "<p style='color:red;'>无法加载航班数据。</p>";
+    } else {
+      const data = JSON.parse(stored);
+
+      if (!data.results || data.results.length === 0) {
+        resultContainer.innerHTML = "<p>没有找到符合条件的航班。</p>";
+      } else {
+        // Render results in a simple readable format
+        let html = `<h3>共找到 ${data.results.length} 个航班：</h3>`;
+        html += `<ul style="list-style:none; padding:0;">`;
+
+        data.results.forEach(flight => {
+          html += `
+            <li style="
+              background:#fff;
+              margin:14px auto;
+              padding:16px;
+              max-width:600px;
+              border-radius:10px;
+              box-shadow:0 2px 6px rgba(0,0,0,0.1);
+              text-align:left;
+            ">
+              <p><span class="mild"> 航空公司: ${AIRLINE_MAP[flight.airline] || flight.airline}</span></p>
+              <strong>航班号：${flight.flight}</strong><br/>
+              日期：${flight.date}<br/>
+              出发：${flight.origin}<br/>
+              到达：${flight.destination}<br/>              
+              舱等：${CLASS_MAP[flight.class] || flight.class}<br/>
+              直飞：${DIRECT_MAP[flight.direct] || flight.direct}<br/>
+              <strong>价格：${flight.price} 元</strong>
+            </li>
+          `;
+        });
+
+        html += `</ul>`;
+        resultContainer.innerHTML = html;
+      }
     }
 
     // Simulate backend loading (you’ll replace this with actual data fetch)
