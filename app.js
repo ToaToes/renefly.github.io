@@ -1,3 +1,6 @@
+// Author: Tom Chen
+// 2025 Dec 10
+
 const auth = firebase.auth();
 
 const emailInput = document.getElementById("email");
@@ -29,11 +32,12 @@ loginBtn.addEventListener("click", () => {
 });
 
 // Sign Up
+/*
 signupBtn.addEventListener("click", () => {
   const email = emailInput.value;
   const password = passwordInput.value;
 
-  /* Sign up the user 
+  // Sign up the user 
   auth.createUserWithEmailAndPassword(email, password)
     .then(() => {
       window.location.href = "home.html";
@@ -41,7 +45,7 @@ signupBtn.addEventListener("click", () => {
     .catch(err => {
       errorMsg.textContent = err.message;
     });
-    */
+    
   auth.createUserWithEmailAndPassword(email, password)
     .then((userCredential) => {
         const user = userCredential.user;
@@ -60,3 +64,5 @@ signupBtn.addEventListener("click", () => {
     });
 
 });
+
+*/
