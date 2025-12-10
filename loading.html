@@ -65,28 +65,106 @@
     });
 
     // Protect this page
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async (user) => {
+
+      // User not logged in 
       if (!user || !user.emailVerified) {
         window.location.href = "index.html";
       } else {
         document.getElementById("auth-blocker").style.display = "none"; // hide blocker
       }
+
+      
+      // MUST HAVE: flight payload from search.html
+      if (!sessionStorage.getItem("flight_payload")) {
+          alert("You cannot access this page directly.");
+          window.location.href = "search.html";
+          return;
+      }
+
+      // Read payload AFTER user is verified
+      const payloadStr = sessionStorage.getItem("flight_payload");
+      if (!payloadStr) {
+          alert("Error: No payload found.");
+          return;
+      }
+
+      const payload = JSON.parse(payloadStr);
+
+      // Fetch ID token
+      let idToken;
+      try {
+          idToken = await user.getIdToken(true);
+      } catch (e) {
+          console.error("Token error", e);
+          alert("Auth error");
+          return;
+      }
+
+
+      // ------------------------------
+      // DEBUG: Log outgoing request headers + body
+      // ------------------------------
+      console.log(">>> Preparing to send backend request <<<");
+      console.log("Endpoint:", "http://192.168.1.81:8001/search");
+
+      console.log("Headers that will be sent:");
+      console.log("Content-Type:", "application/json");
+      console.log("Authorization:", "Bearer " + idToken.trim());
+
+      console.log("Payload being sent:");
+      console.log(payload);
+
+      
+      // SEND REQUEST HERE
+      let apiResult;
+      try {
+          const response = await fetch("http://192.168.1.81:8001/search", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + idToken.trim()
+              },
+              credentials: "include",
+              body: JSON.stringify(payload)
+          });
+
+          // DEBUG: Log response info
+          console.log(">>> Backend responded <<<");
+          console.log("Status:", response.status);
+          console.log("Response Headers:", Object.fromEntries(response.headers.entries()));
+
+          apiResult = await response.json();
+
+          console.log("Response JSON:", apiResult);
+
+      } catch (err) {
+          console.error("Backend error:", err);
+          alert("Backend request failed.");
+          return;
+      }
+
+      // Save to sessionStorage
+      sessionStorage.setItem("flight_result", JSON.stringify(apiResult));
+
+      // keep original params
+      const params = window.location.search;
+
+      // simulate loading, then go to results.html
+      setTimeout(() => {
+        window.location.href = "results.html" + params;
+      }, 20000);
+
     });
 
   </script>
 </head>
 <body>
+  <!-- Auth blocker element -->
+  <div id="auth-blocker" style="display: block;"></div>
+
   <div class="spinner"></div>
   <p>正在加载航班信息，请稍候...</p>
-
-  <script>
-    // Simulate backend data gathering for ~20 seconds
-    setTimeout(() => {
-      // Redirect to results page (you can pass query params if needed)
-      const params = window.location.search;
-      window.location.href = "results.html" + params;
-    }, 20000); // 20 seconds
-  </script>
   
 </body>
 </html>
