@@ -179,14 +179,10 @@
       flightDateInput.blur(); // Close date picker
       document.activeElement.blur(); // Also close virtual keyboard
     });
-  </script>
 
-  
-  <script>
     // set date min is today
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("flightDate").setAttribute("min", today);
-
   </script>
 
 
@@ -204,7 +200,6 @@
       const noAirlineChecked = document.querySelectorAll('#airline-options input[type="checkbox"]:checked').length === 0;
 
       if (noClassChecked || noAirlineChecked) {
-        
 
         if (noClassChecked) {
           document.getElementById("class-button").textContent = "请至少选择一个舱等";
@@ -225,6 +220,7 @@
         alert("不能选择过去的日期！");
         return;
       }
+
 
       // Build URL Params
       const formData = new FormData(this);
@@ -260,24 +256,6 @@
       console.log("Payload JSON:", payload);
 
       // --------------------
-      // Call backend API
-      // --------------------
-      let apiResult = null;
-      try {
-        const response = await fetch("http://192.168.1.81:8001/search", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        apiResult = await response.json();
-
-      } catch (err) {
-        console.error("Error fetching flights:", err);
-        alert("Failed to fetch flights. Check console.");
-        return;
-      }
-
-      // --------------------
       // Save API result to sessionStorage
       // --------------------
       sessionStorage.setItem("flight_result", JSON.stringify(apiResult));
@@ -288,7 +266,9 @@
       window.location.href = "loading.html?" + params.toString();
     
     });
+  </script>
 
+  <script>
     // ----------------------
     // 2. Update button text when checkboxes change
     // ----------------------
@@ -318,102 +298,6 @@
         button.textContent = emptyMessage;
       }
     }
-  </script>
-    
-  <script>
-    //Build JSON payload
-    document.getElementById("flightForm").addEventListener("submit", async function (e) {
-      e.preventDefault(); // stop default form submit
-
-      // Collect form data
-      const formData = new FormData(this);
-
-      const flightDate = formData.get("flightDate");
-      const departure = formData.get("departure");
-      const arrival = formData.get("arrival");
-
-      // Get checked classes
-      const classes = Array.from(document.querySelectorAll('#class-options input[type="checkbox"]:checked'))
-                            .map(cb => cb.value)
-                            .join(","); // backend expects a comma-separated string
-
-      // Get checked airlines
-      const airlines = Array.from(document.querySelectorAll('#airline-options input[type="checkbox"]:checked'))
-                            .map(cb => cb.value)
-                            .join(",");
-
-      // Check if direct flight
-      const directFlight = formData.get("directFlight") ? true : false;
-
-
-      const payload = {
-        date: flightDate,
-        origin: departure,
-        destination: arrival,
-        airline: airlines || null,
-        cabin_class: classes || null,
-        DirectFlight: directFlight
-      };
-
-      console.log("Payload JSON:", payload);
-
-      // Save payload ONLY — DO NOT SEND REQUEST HERE
-      sessionStorage.setItem("flight_payload", JSON.stringify(payload));
-
-      // Build URL params for results display
-      const params = new URLSearchParams(new FormData(this)).toString();
-
-      // Redirect to loading page
-      window.location.href = "loading.html?" + params;
-
-
-
-      /*
-      Move to loading.html
-
-      // Send JSON to FastAPI
-      try {
-
-        // SAFELY handle backend verification
-        const user = firebase.auth().currentUser;
-
-        // Here or check if user log in or not
-
-        const idToken = await user.getIdToken(true); // true forces refresh
-
-        const response = await fetch("http://192.168.1.81:8001/search", {  // change testing IP
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + idToken.trim()
-          },
-          body: JSON.stringify(payload)
-        })
-        .then(response => {
-            console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-            console.log('Response ok', response.ok);
-
-            if (!response.ok){
-              throw new Error('HTTP error! status: ${response.status}');
-            }
-
-            return response.json();
-          }
-        );
-
-        const result = await response.json();
-        console.log("API response:", result);
-
-        // You can render results on the page instead of redirecting
-        // alert(`Found ${result.results.length} flights`);
-
-      } catch (err) {
-        console.error("Error fetching flights:", err);
-        alert("Failed to fetch flights. Check console.");
-      }*/
-    });
-
   </script>
 
 </body>
