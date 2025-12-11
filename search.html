@@ -223,12 +223,12 @@
 
       // Build JSON payload for backend
       const payload = {
-        date: formData.get("flightDate"),
-        origin: formData.get("departure"),
-        destination: formData.get("arrival"),
-        airline: Array.from(document.querySelectorAll('#airline-options input[type="checkbox"]:checked')).map(cb => cb.value).join(",") || null,
-        cabin_class: Array.from(document.querySelectorAll('#class-options input[type="checkbox"]:checked')).map(cb => cb.value).join(",") || null,
-        DirectFlight: formData.get("directFlight") ? true : false
+        date: document.getElementById("flightDate").value,
+        origin: document.getElementById("departure").value,
+        destination: document.getElementById("arrival").value,
+        airline: [...document.querySelectorAll('#airline-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
+        cabin_class: [...document.querySelectorAll('#class-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
+        DirectFlight: document.getElementById("directFlight").checked
       };
 
       console.log("Payload JSON:", payload);
