@@ -1,80 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Flight Search Demo</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Firebase Auth</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <h2>Search Flights</h2>
+  <div class="container">
+    <h2>Account Authentication</h2>
+    
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    
+    <button id="loginBtn">Login</button>
+    <!-- Hide -->
+    <!-- <button id="signupBtn">Sign Up</button> -->
+    
+    <p id="errorMsg"></p>
+  </div>
 
-    <label>Date:</label>
-    <input type="date" id="date"><br><br>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-auth-compat.js"></script>
 
-    <label>Airline:</label>
-    <input type="text" id="airline"><br><br>
-
-    <label>Origin:</label>
-    <input type="text" id="origin"><br><br>
-
-    <label>Destination:</label>
-    <input type="text" id="destination"><br><br>
-
-    <label>Class:</label>
-    <input type="text" id="cabin_class"><br><br>
-
-    <button onclick="search()">Search</button>
-
-    <pre id="result"></pre>
-
-<script>
-async function search() {
-    const payload = {
-        date: document.getElementById("date").value,
-        origin: document.getElementById("origin").value,
-        destination: document.getElementById("destination").value,
-        airline: document.getElementById("airline").value,
-        cabin_class: document.getElementById("cabin_class").value,
+  <!-- Your Firebase config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjBXmXps-wu6qIudSdD_0aGNri6WiM3vU",
+      authDomain: "loginauth-8662e.firebaseapp.com",
+      projectId: "loginauth-8662e",
+      storageBucket: "loginauth-8662e.firebasestorage.app",
+      messagingSenderId: "542087917375",
+      appId: "1:542087917375:web:deb096e402681ac4756d8a",
+      measurementId: "G-DK6XZBH36G"
     };
 
-    try {
-        const response = await fetch("http://127.0.0.1:8001/search", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
+    firebase.initializeApp(firebaseConfig);
+  </script>
 
-        const data = await response.json();
+  <!-- Press enter key to hit button -->
+  <script>
+    document.getElementById("password").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        // prevent the default action to avoid form submission
+        event.preventDefault();
+        // Trigger the button element with a click
+        document.getElementById("loginBtn").click();
+      }
+    });
+  </script>
 
-        // Clear previous results
-        const resultDiv = document.getElementById("result");
-        resultDiv.innerHTML = "";
-
-        if (data.status === "success" && data.results.length > 0) {
-            data.results.forEach(flight => {
-                const flightInfo = `
-                    <div style="border:1px solid #ccc; padding:10px; margin:10px 0;">
-                        <strong>Airline:</strong> ${flight.airline}<br>
-                        <strong>FlightNumber:</strong> ${flight.flight_no}<br>
-                        <strong>From:</strong> ${flight.origin}<br>
-                        <strong>To:</strong> ${flight.destination}<br>
-                        <strong>Date:</strong> ${flight.date}<br>
-                        <strong>Class:</strong> ${flight.class}<br>
-                        <strong>Price:</strong> $${flight.price}<br>
-                        <strong>DirectFlight:</strong> $${flight.DirectFlight}<br>
-                    </div>
-                `;
-                resultDiv.innerHTML += flightInfo;
-            });
-        } else {
-            resultDiv.textContent = "No flights found.";
-        }
-
-    } catch (error) {
-        document.getElementById("result").textContent = "Error: " + error;
-    }
-
-
-}
-</script>
-
+  <script src="app.js"></script>
 </body>
 </html>
