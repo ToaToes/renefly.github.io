@@ -236,24 +236,16 @@
       // Save payload ONLY — loading.html will fetch API
       sessionStorage.setItem("flight_payload", JSON.stringify(payload));
 
-            // Build URL Params
-      const formData = new FormData(this);
-      const params = new URLSearchParams();
-
-      ["class", "airline"].forEach(name => {
-        const values = formData.getAll(name);
-        if (values.length === 0) {
-          params.append(name, "all");
-        } else {
-          values.forEach(v => params.append(name, v));
-        }
+      // Build URL Params
+      const params = new URLSearchParams({
+        flightDate: payload.date,
+        departure: payload.origin,
+        arrival: payload.destination,
+        directFlight: payload.DirectFlight ? "true" : "false"
       });
 
-      ["flightDate", "departure", "arrival", "directFlight"].forEach(name => {
-        if (formData.has(name)) {
-          params.append(name, formData.get(name));
-        }
-      });
+      payload.cabin_class.split(",").forEach(c => params.append("class", c));
+      payload.airline.split(",").forEach(a => params.append("airline", a));
 
       console.log("URL params:", params.toString());
 
