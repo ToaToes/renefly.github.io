@@ -190,7 +190,7 @@
   <script>
     console.log("script loaded");
     // ----------------------
-    // 1. Form submit with validation + API request + redirect
+    // 1. Form submit with validation + redirect
     // ----------------------
     document.getElementById("flightForm").addEventListener("submit", async function (e) {
 
@@ -221,8 +221,22 @@
         return;
       }
 
+      // Build JSON payload for backend
+      const payload = {
+        date: formData.get("flightDate"),
+        origin: formData.get("departure"),
+        destination: formData.get("arrival"),
+        airline: Array.from(document.querySelectorAll('#airline-options input[type="checkbox"]:checked')).map(cb => cb.value).join(",") || null,
+        cabin_class: Array.from(document.querySelectorAll('#class-options input[type="checkbox"]:checked')).map(cb => cb.value).join(",") || null,
+        DirectFlight: formData.get("directFlight") ? true : false
+      };
 
-      // Build URL Params
+      console.log("Payload JSON:", payload);
+
+      // Save payload ONLY — loading.html will fetch API
+      sessionStorage.setItem("flight_payload", JSON.stringify(payload));
+
+            // Build URL Params
       const formData = new FormData(this);
       const params = new URLSearchParams();
 
@@ -242,23 +256,6 @@
       });
 
       console.log("URL params:", params.toString());
-
-      // Build JSON payload for backend
-      const payload = {
-        date: formData.get("flightDate"),
-        origin: formData.get("departure"),
-        destination: formData.get("arrival"),
-        airline: Array.from(document.querySelectorAll('#airline-options input[type="checkbox"]:checked')).map(cb => cb.value).join(",") || null,
-        cabin_class: Array.from(document.querySelectorAll('#class-options input[type="checkbox"]:checked')).map(cb => cb.value).join(",") || null,
-        DirectFlight: formData.get("directFlight") ? true : false
-      };
-
-      console.log("Payload JSON:", payload);
-
-      // --------------------
-      // Save API result to sessionStorage
-      // --------------------
-      sessionStorage.setItem("flight_result", JSON.stringify(apiResult));
 
       // --------------------
       // Redirect WITH PARAMS
