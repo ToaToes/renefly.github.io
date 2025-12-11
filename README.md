@@ -79,6 +79,15 @@ if __name__ == "__main__":
 CMD ["uvicorn", "public_api:app", "--host", "0.0.0.0", "--port", "8001"]
 ```
 
+### NOTE: CMD COMMAND will overide the python code:
+```
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("public_api:app", host="192.168.1.81", port=8001, reload=True)
+```
+_remember to change when environment altered_
+
+
 ## Clean rebuild and restart:
 1. cut the port
 ```
