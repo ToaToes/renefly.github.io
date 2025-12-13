@@ -222,10 +222,11 @@
       }
 
       // Build JSON payload for backend
+      // Also MAP City (IATA) -> IATA only
       const payload = {
         airline: [...document.querySelectorAll('#airline-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
-        origin: document.getElementById("departure").value,
-        destination: document.getElementById("arrival").value,
+        origin: (document.getElementById("departure").value.match(/\(([^)]+)\)/) || [])[1] || document.getElementById("departure").value,
+        destination: (document.getElementById("arrival").value.match(/\(([^)]+)\)/) || [])[1] || document.getElementById("arrival").value,
         depart_date: document.getElementById("flightDate").value,
         cabin_class: [...document.querySelectorAll('#class-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
         stop_policy: document.getElementById("directFlight").checked ? "direct" : "any"
@@ -312,7 +313,7 @@
           alert("到达地不能包含数字");
           return false; // Prevent form submission
         }
-        
+
         return true;
     }
 
