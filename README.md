@@ -168,3 +168,43 @@ curl -X POST http://localhost:8001/search \
   -s | python3 -m json.tool
 
 ```
+
+7. Handle large amount of Flows
+
+FastAPI itself is async, but Python is still CPU-bound. <br>
+Use multiple Uvicorn/Gunicorn workers:
+```
+gunicorn public_api:app \
+  -k uvicorn.workers.UvicornWorker \
+  --workers 4 \
+  --bind 0.0.0.0:53699
+```
+Rule of thumb:
+```
+workers = (CPU cores × 2) + 1
+```
+
+Command:
+public_api:app	public_api.py file, variable app<br>
+-k uvicorn.workers.UvicornWorker	Use Uvicorn worker for async FastAPI<br>
+--workers 4	Number of worker processes (adjust to CPU cores)<br>
+--bind 0.0.0.0:53699	Listen on all interfaces on port 53699<br>
+```
+gunicorn public_api:app \
+  -k uvicorn.workers.UvicornWorker \
+  --workers 4 \
+  --bind 0.0.0.0:53699
+```
+Adjust workers based on CPU cores:
+```
+workers = (CPU cores × 2) + 1
+```
+Run in background:
+```
+gunicorn public_api:app -k uvicorn.workers.UvicornWorker --workers 4 --bind 0.0.0.0:53699 &
+```
+Stop the server:
+```
+pkill -f "gunicorn public_api:app"
+```
+Use Docker (optional) — same command is in the Dockerfile.
