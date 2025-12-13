@@ -63,7 +63,7 @@
 
   <h2>航线搜索</h2>
 
-  <form id="flightForm">
+  <form id="flightForm" onsubmit="return validateForm()">
     <!-- Ban user from choosing previous date before today -->
     <label for="flightDate">日期:</label>
     <input type="date" id="flightDate" name="flightDate" min="" required />
@@ -287,6 +287,41 @@
         button.textContent = emptyMessage;
       }
     }
+  </script>
+
+  <script>
+
+    // Form validation function
+    function validateForm() {
+      const departure = document.getElementById("departure").value.trim();
+      const arrival = document.getElementById("arrival").value.trim();
+
+        // Check if departure and arrival are the same
+        if (departure.toLowerCase() === arrival.toLowerCase()) {
+          alert("出发地和到达地不能相同");
+          return false;
+        }
+
+        // Check if departure or arrival contains numbers
+        if (containsNumbers(departure)) {
+          alert("出发地不能包含数字");
+          return false; // Prevent form submission
+        }
+
+        if (containsNumbers(arrival)) {
+          alert("到达地不能包含数字");
+          return false; // Prevent form submission
+        }
+        
+        return true;
+    }
+
+
+    // Function to check if a string contains any numbers
+    function containsNumbers(str) {
+      return /\d/.test(str); // Returns true if the string contains numbers
+    }
+
   </script>
 
 </body>
