@@ -3,14 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flight Search</title>
-  <link rel="stylesheet" href="style_search.css" />
+  <title>加载中...</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f5f6fa;
+      font-family: Arial, sans-serif;
+    }
+
+    .spinner {
+      border: 6px solid #ddd;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    p {
+      margin-top: 20px;
+      color: #333;
+      font-size: 18px;
+    }
+  </style>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-auth-compat.js"></script>
 
-  <!-- Firebase Config -->
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBjBXmXps-wu6qIudSdD_0aGNri6WiM3vU",
@@ -35,259 +65,108 @@
     });
 
     // Protect this page
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async (user) => {
+
+      // User not logged in 
       if (!user || !user.emailVerified) {
         window.location.href = "index.html";
       } else {
         document.getElementById("auth-blocker").style.display = "none"; // hide blocker
       }
+
+      
+      // MUST HAVE: flight payload from search.html
+      if (!sessionStorage.getItem("request_flights")) {
+          alert("You cannot access this page directly.");
+          window.location.href = "search.html";
+          return;
+      }
+
+      // Read payload AFTER user is verified
+      const payloadStr = sessionStorage.getItem("request_flights");
+      if (!payloadStr) {
+          alert("Error: No payload found.");
+          return;
+      }
+
+      const request_flights = JSON.parse(payloadStr); //payload
+
+      // Fetch ID token
+      let idToken;
+      try {
+          idToken = await user.getIdToken(true);
+      } catch (e) {
+          console.error("Token error", e);
+          alert("Auth error");
+          return;
+      }
+
+
+      // ------------------------------
+      // DEBUG: Log outgoing request headers + body
+      // ------------------------------
+      console.log(">>> Preparing to send backend request <<<");
+      console.log("Endpoint:", "http://192.168.1.81:8001/search");
+
+      console.log("Headers that will be sent:");
+      console.log("Content-Type:", "application/json");
+      console.log("Authorization:", "Bearer " + idToken.trim());
+
+      console.log("Payload being sent:");
+      console.log(request_flights); //payload
+
+      
+      // SEND REQUEST HERE
+      let apiResult;
+      try {
+          const response = await fetch("https://jp.renefly.com/search", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + idToken.trim()
+              },
+              credentials: "include",
+              body: JSON.stringify(request_flights)
+          });
+
+          // DEBUG: Log response info
+          console.log(">>> Backend responded <<<");
+          console.log("Status:", response.status);
+          console.log("Response Headers:", Object.fromEntries(response.headers.entries()));
+
+          apiResult = await response.json();
+
+          console.log("Response JSON:", apiResult);
+
+      } catch (err) {
+          console.error("Backend error:", err);
+          alert("Backend request failed.");
+          return;
+      }
+
+      // Save to sessionStorage
+      sessionStorage.setItem("flight_result", JSON.stringify(apiResult));
+
+      // keep original params
+      const params = window.location.search;
+
+      // simulate loading, then go to results.html
+      /*
+      setTimeout(() => {
+        
+      }, 20000);
+      */
+      window.location.href = "results.html" + params;
     });
 
   </script>
-
 </head>
 <body>
+  <!-- Auth blocker element -->
+  <div id="auth-blocker" style="display: block;"></div>
 
-  <div id="auth-blocker" style="
-      position: fixed;
-      inset: 0;
-      background: white;
-      z-index: 99999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 20px;
-    ">
-      Checking authentication…
-  </div>
-
-  <h2>航线搜索</h2>
-
-  <form id="flightForm">
-    <!-- Ban user from choosing previous date before today -->
-    <label for="flightDate">日期:</label>
-    <input type="date" id="flightDate" name="flightDate" min="" required />
-
-    <label for="departure">出发地:</label>
-    <input type="text" id="departure" name="departure" placeholder="输入出发城市" autocomplete="off" required />
-    <div id="departureResult" ></div>
-
-    <label for="arrival">到达地:</label>
-    <input type="text" id="arrival" name="arrival" placeholder="输入到达城市" autocomplete="off" required />
-    <div id="arrivalResult" ></div>
-
-    
-    <!-- Class Dropdown -->
-    <div class="dropdown-checkbox">
-      <label for="class-select">舱等:</label>
-      <button type="button" id="class-button" onclick="toggleDropdown('class')">请选择舱等 (默认全选)</button>
-      <div class="options" id="class-options">
-        <!-- 默认全选 -->
-        <!-- <label><input type="checkbox" value="all" onchange="updateButtonText('class')"> 默认全部</label> -->
-        <label><input type="checkbox" name="class" value="economy" onchange="updateButtonText('class')" checked> 经济</label>
-        <label><input type="checkbox" name="class" value="premium_economy" onchange="updateButtonText('class')" checked> 超级经济</label>
-        <label><input type="checkbox" name="class" value="business" onchange="updateButtonText('class')" checked> 商务</label>
-        <label><input type="checkbox" name="class" value="first" onchange="updateButtonText('class')" checked> 头等</label>
-      </div>
-    </div>
-
-
-    <!-- Airline Dropdown -->
-    <div class="dropdown-checkbox">
-      <label for="airline-select">航司:</label>
-      <button type="button" id="airline-button" onclick="toggleDropdown('airline')">请选择航空公司 (默认全选)</button>
-      <div class="options" id="airline-options">
-        <!-- 默认全选 -->
-        <!-- <label><input type="checkbox" value="all" onchange="updateButtonText('airline')"> 默认全部</label> -->
-        <label><input type="checkbox" name="airline" value="AA" onchange="updateButtonText('airline')" checked> 美国航空 - AA</label>
-        <label><input type="checkbox" name="airline" value="AS" onchange="updateButtonText('airline')" checked> 阿拉斯加航空 - AS</label>
-        <label><input type="checkbox" name="airline" value="BA" onchange="updateButtonText('airline')" checked> 英国航空 - BA</label>
-        <label><input type="checkbox" name="airline" value="AF" onchange="updateButtonText('airline')" checked> 法国航空 - AF</label>
-        <label><input type="checkbox" name="airline" value="UA" onchange="updateButtonText('airline')" checked> 美联航 - UA</label>
-        <label><input type="checkbox" name="airline" value="AC" onchange="updateButtonText('airline')" checked> 加拿大航空 - AC</label>
-        <label><input type="checkbox" name="airline" value="CX" onchange="updateButtonText('airline')" checked> 国泰航空 - CX</label>
-      </div>
-    </div>
-
-
-    <label for="directFlight" style="margin-bottom: 15px; display: inline-block;">
-      <input type="checkbox" id="directFlight" name="directFlight" />
-      仅限直飞
-    </label>
-
-    <button type="submit" id="submitBtn">搜索航班</button>
-  </form>
-
-  <!-- associate with IATA code, from json -->
-  <script src="IATA_association.js"></script>
-
-  <script>
-    function toggleDropdown(type) {
-      const classOptions = document.getElementById("class-options");
-      const airlineOptions = document.getElementById("airline-options");
-
-      if (type === "class") {
-        classOptions.style.display = classOptions.style.display === "block" ? "none" : "block";
-        airlineOptions.style.display = "none"; // Close the other
-      } else if (type === "airline") {
-        airlineOptions.style.display = airlineOptions.style.display === "block" ? "none" : "block";
-        classOptions.style.display = "none"; // Close the other
-      }
-    }
-
-
-    // Close any dropdown when clicking outside
-    window.addEventListener('click', function (e) {
-      const dropdowns = document.querySelectorAll('.dropdown-checkbox');
-      dropdowns.forEach(dropdown => {
-        if (!dropdown.contains(e.target)) {
-          const options = dropdown.querySelector('.options');
-          if (options) options.style.display = 'none';
-        }
-      });
-    });
-
-  </script>
-
-  <!-- Press enter key to hit button -->
-  <script>
-    // Let the form handle its own submission
-    document.getElementById("flightForm").addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        // Only block Enter when dropdowns are open
-        const classOptions = document.getElementById("class-options");
-        const airlineOptions = document.getElementById("airline-options");
-
-        if (classOptions.style.display === "block" || airlineOptions.style.display === "block") {
-          event.preventDefault(); // prevent accidental submits when dropdown is open
-        } else {
-          event.preventDefault(); // stop default to control it
-          document.getElementById("submitBtn").click(); // simulate submit button click
-        }
-
-      }
-    });
-  </script>
-
-
-  <script>
-    const flightDateInput = document.getElementById("flightDate");
-
-    // Detect date change, then close the picker automatically
-    flightDateInput.addEventListener("change", () => {
-      // Blur removes focus, which closes the picker UI
-      flightDateInput.blur(); // Close date picker
-      document.activeElement.blur(); // Also close virtual keyboard
-    });
-
-    // set date min is today
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("flightDate").setAttribute("min", today);
-  </script>
-
-
-  <!-- submit -->
-  <script>
-    console.log("script loaded");
-    // ----------------------
-    // 1. Form submit with validation + redirect
-    // ----------------------
-    document.getElementById("flightForm").addEventListener("submit", async function (e) {
-
-      e.preventDefault(); // ← 确保先阻止默认刷新
-
-      const noClassChecked = document.querySelectorAll('#class-options input[type="checkbox"]:checked').length === 0;
-      const noAirlineChecked = document.querySelectorAll('#airline-options input[type="checkbox"]:checked').length === 0;
-
-      if (noClassChecked || noAirlineChecked) {
-
-        if (noClassChecked) {
-          document.getElementById("class-button").textContent = "请至少选择一个舱等";
-          alert("请至少选择一个舱等");
-        }
-        if (noAirlineChecked) {
-          document.getElementById("airline-button").textContent = "请至少选择一个航空公司";
-          alert("请至少选择一个航空公司");
-        }
-
-        return; // stop form
-      }
-
-      // date can not in the past
-      const inputDate = document.getElementById("flightDate").value;
-      const today = new Date().toISOString().split("T")[0];
-      if (inputDate < today) {
-        alert("不能选择过去的日期！");
-        return;
-      }
-
-      // Build JSON payload for backend
-      const request_flights = {
-        airline: [...document.querySelectorAll('#airline-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
-        origin: document.getElementById("departure").value,
-        destination: document.getElementById("arrival").value,
-        depart_date: document.getElementById("flightDate").value,
-        cabin_class: [...document.querySelectorAll('#class-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
-        stop_policy: document.getElementById("directFlight").checked
-      };
-
-      console.log("Payload JSON:", request_flights);
-
-      // Save payload ONLY — loading.html will fetch API
-      sessionStorage.setItem("request_flights", JSON.stringify(request_flights));
-
-      // Build URL Params
-      const params = new URLSearchParams({
-        depart_date: request_flights.date,
-        origin: request_flights.origin,
-        destination: request_flights.destination,
-        stop_policy: request_flights.stop_policy ? "direct" : "any" // directFly true/false -> direct/any
-      });
-
-      request_flights.cabin_class.split(",").forEach(c => params.append("class", c));
-      request_flights.airline.split(",").forEach(a => params.append("airline", a));
-
-      console.log("URL params:", params.toString());
-
-      // --------------------
-      // Redirect WITH PARAMS
-      // --------------------
-      window.location.href = "loading.html?" + params.toString();
-    
-    });
-  </script>
-
-  <script>
-    // ----------------------
-    // 2. Update button text when checkboxes change
-    // ----------------------
-    function updateButtonText(type) {
-      let checkboxes, button, emptyMessage;
-
-      if (type === "class") {
-        checkboxes = document.querySelectorAll('#class-options input[type="checkbox"]');
-        button = document.getElementById("class-button");
-        emptyMessage = "请至少选择一个舱等";
-      } else if (type === "airline") {
-        checkboxes = document.querySelectorAll('#airline-options input[type="checkbox"]');
-        button = document.getElementById("airline-button");
-        emptyMessage = "请至少选择一个航空公司";
-      }
-
-      const selected = [];
-      checkboxes.forEach(cb => {
-        if (cb.checked) {
-          selected.push(cb.parentNode.textContent.trim());
-        }
-      });
-
-      if (selected.length > 0) {
-        button.textContent = selected.join(', ');
-      } else {
-        button.textContent = emptyMessage;
-      }
-    }
-  </script>
-
+  <div class="spinner"></div>
+  <p>正在加载航班信息，请稍候...</p>
+  
 </body>
 </html>
