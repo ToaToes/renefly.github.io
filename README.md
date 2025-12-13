@@ -195,6 +195,11 @@ gunicorn public_api:app \
   --workers 4 \
   --bind 0.0.0.0:53699
 ```
+ONELINE CODE
+```
+gunicorn public_api:app -k uvicorn.workers.UvicornWorker --workers 4 --bind 0.0.0.0:53699
+```
+
 Adjust workers based on CPU cores:
 ```
 workers = (CPU cores × 2) + 1
