@@ -1,3 +1,4 @@
+```
 成功success返回规范：
 {
   "version": "1.0",
@@ -63,3 +64,4 @@
     "message": "Access denied / bot protection triggered", //风控：账号软封禁
   }
 }
+```
