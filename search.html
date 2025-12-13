@@ -222,30 +222,30 @@
       }
 
       // Build JSON payload for backend
-      const payload = {
-        date: document.getElementById("flightDate").value,
+      const request_flights = {
+        airline: [...document.querySelectorAll('#airline-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
         origin: document.getElementById("departure").value,
         destination: document.getElementById("arrival").value,
-        airline: [...document.querySelectorAll('#airline-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
+        depart_date: document.getElementById("flightDate").value,
         cabin_class: [...document.querySelectorAll('#class-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
-        DirectFlight: document.getElementById("directFlight").checked
+        stop_policy: document.getElementById("directFlight").checked
       };
 
-      console.log("Payload JSON:", payload);
+      console.log("Payload JSON:", request_flights);
 
       // Save payload ONLY — loading.html will fetch API
-      sessionStorage.setItem("flight_payload", JSON.stringify(payload));
+      sessionStorage.setItem("request_flights", JSON.stringify(request_flights));
 
       // Build URL Params
       const params = new URLSearchParams({
-        flightDate: payload.date,
-        departure: payload.origin,
-        arrival: payload.destination,
-        directFlight: payload.DirectFlight ? "true" : "false"
+        depart_date: request_flights.date,
+        origin: request_flights.origin,
+        destination: request_flights.destination,
+        stop_policy: request_flights.stop_policy ? "direct" : "any" // directFly true/false -> direct/any
       });
 
-      payload.cabin_class.split(",").forEach(c => params.append("class", c));
-      payload.airline.split(",").forEach(a => params.append("airline", a));
+      request_flights.cabin_class.split(",").forEach(c => params.append("class", c));
+      request_flights.airline.split(",").forEach(a => params.append("airline", a));
 
       console.log("URL params:", params.toString());
 
