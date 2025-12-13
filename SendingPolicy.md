@@ -1,3 +1,4 @@
+```
 {
   "version": "1.0",
   "type": "flight_search_request",
@@ -11,3 +12,4 @@
 	"uuid": "exriveiv@gmail.com_20251212011653" // uuid(邮箱+请求时间时间戳<年月日小时分钟秒钟>)
   }
 }
+```
