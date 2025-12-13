@@ -147,6 +147,7 @@
         const airlines = params.getAll("airline").map(a => AIRLINE_MAP[a] || a);
         return airlines.length > 0 ? airlines.join(", ") : "全部";
       })(),
+
       "直飞": params.get("directFlight") ? "是" : "否"
     };
 
@@ -174,38 +175,59 @@
       if (!data.results || data.results.length === 0) {
         resultContainer.innerHTML = "<p>没有找到符合条件的航班。</p>";
       } else {
-        // Render results in a simple readable format
-        let html = `<h3>共找到 ${data.results.length} 个航班：</h3>`;
-        html += `<ul style="list-style:none; padding:0;">`;
 
-        data.results.forEach(flight => {
-          html += `
-            <li style="
-              background:#fff;
-              margin:14px auto;
-              padding:16px;
-              max-width:600px;
-              border-radius:10px;
-              box-shadow:0 2px 6px rgba(0,0,0,0.1);
-              text-align:left;
-            ">
-              <p><span class="mild"> 航空公司: ${AIRLINE_MAP[flight.airline] || flight.airline}</span></p>
-              <strong>航班号：${flight.flight}</strong><br/>
-              日期：${flight.date}<br/>
-              出发：${flight.origin}<br/>
-              到达：${flight.destination}<br/>              
-              舱等：${CLASS_MAP[flight.class] || flight.class}<br/>
-              直飞：${DIRECT_MAP[flight.direct] || flight.direct}<br/>
-              <strong>价格：${flight.price} 元</strong>
-            </li>
-          `;
+        // Group flights by airline
+        const grouped = {};
+        data.results.forEach(f => {
+          const airlineName = AIRLINE_MAP[f.airline] || f.airline;
+          if (!grouped[airlineName]) grouped[airlineName] = [];
+          grouped[airlineName].push(f);
         });
 
-        html += `</ul>`;
-        resultContainer.innerHTML = html;
-      }
-    }
+        // Render results in a simple readable format
+        let html = `<h3>共找到 ${data.results.length} 个航班：</h3>`;
 
+        for (const airline in grouped) {
+          html += `
+            <h2 style="
+              margin-top:40px;
+              color:#2c3e50;
+              border-left:5px solid #3498db;
+              padding-left:10px;
+            ">${airline}</h2>
+            <ul style="list-style:none; padding:0;">
+          `;
+
+          grouped[airline].forEach(flight => {
+            html += `
+              <li style="
+                background:#fff;
+                margin:14px auto;
+                padding:16px;
+                max-width:600px;
+                border-radius:10px;
+                box-shadow:0 2px 6px rgba(0,0,0,0.1);
+                text-align:left;
+              ">
+                <strong>航班号：${flight.flight}</strong><br/>
+                日期：${flight.date}<br/>
+                出发：${flight.origin}<br/>
+                到达：${flight.destination}<br/>
+                舱等：${CLASS_MAP[flight.class] || flight.class}<br/>
+                直飞：${DIRECT_MAP[flight.direct] || flight.direct}<br/>
+                <strong>价格：${flight.price} 元</strong>
+              </li>
+            `;
+          });
+
+          html += `</ul>`;
+        
+        }
+        resultContainer.innerHTML = html;
+
+      }
+      
+    }
     // Simulate backend loading (you’ll replace this with actual data fetch)
     // testing only
     /*
