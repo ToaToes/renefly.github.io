@@ -174,13 +174,18 @@
 
       console.log("Recieved:", stored.toString())
 
-      if (!data.results || data.results.length === 0) {
+      // Retrieving Data
+      const downstream = data.downstream?.[0];
+      const flights = downstream?.flights || [];
+
+      if (!flights.results || flights.results.length === 0) {
         resultContainer.innerHTML = "<p>没有找到符合条件的航班。</p>";
+        return;
       } else {
 
         // Group flights by airline
         const grouped = {};
-        data.results.forEach(f => {
+        flights.results.forEach(f => {
           const airlineName = AIRLINE_MAP[f.airline] || f.airline;
           if (!grouped[airlineName]) grouped[airlineName] = [];
           grouped[airlineName].push(f);
