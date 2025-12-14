@@ -209,13 +209,17 @@
                 box-shadow:0 2px 6px rgba(0,0,0,0.1);
                 text-align:left;
               ">
-                <strong>航班号：${flight.flight}</strong><br/>
-                日期：${flight.date}<br/>
-                出发：${flight.origin}<br/>
-                到达：${flight.destination}<br/>
-                舱等：${CLASS_MAP[flight.class] || flight.class}<br/>
-                直飞：${DIRECT_MAP[flight.direct] || flight.direct}<br/>
-                <strong>价格：${flight.price} 元</strong>
+                <strong>航班号：${flight.flight_no}</strong><br/>
+                日期：${flight.depart_date}<br/>
+                出发机场：${flight.origin}<br/>
+                出发时间：${flight.depart_date}<br>
+                到达机场：${flight.destination}<br/>
+                到达时间：${flight.arrival_time}
+                舱等：${CLASS_MAP[flight.cabin_class] || flight.cabin_class}<br/>
+                中转次数：${flight.stop}<br/>
+                中转机场：${flight.stop_airports}<br/>
+                是否可兑换：${flight.can_redeem}<br/>
+                <strong>价格：${flight.miles} 元</strong>
               </li>
             `;
           });
@@ -226,7 +230,7 @@
         resultContainer.innerHTML = html;
 
       }
-      
+
     }
     // Simulate backend loading (you’ll replace this with actual data fetch)
     // testing only
