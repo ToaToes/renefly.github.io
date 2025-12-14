@@ -188,23 +188,26 @@
       resultContainer.innerHTML = "<p style='color:red;'>无法加载航班数据。</p>";
     } else {
       const data = JSON.parse(stored);
-
+      const downstream = data.downstream || [];
       console.log("Recieved:", stored.toString())
 
-      // Retrieving Data
-      const downstream = data.downstream?.[0];
-      //flights → per-flight info (times, stops, miles)
-      // meta → shared info (date, cabin, airline)
-      let flights = downstream?.flights || [];
-      const meta = downstream?.results || {};
+      // Collect all flights from all successful airlines
+      let allFlights = [];
+      const metaMap = {}; // store meta info per airline
+      downstream.forEach(item => {
+        if (item.status === "success" && Array.isArray(item.flights)) {
+          allFlights.push(...item.flights);
+          metaMap[item.results.airline] = item.results;
+        }
+      });
 
-      if (flights.length === 0) {
+      if (allFlights.length === 0) {
         resultContainer.innerHTML = "<p>没有找到符合条件的航班。</p>";
       } else {
 
         // Group flights by airline
         const grouped = {};
-        flights.forEach(f => {
+        allFlights.forEach(f => {
           const airlineCode = f.flight_no?.slice(0, 2) || meta.airline || "未知航司";
           const airlineName = AIRLINE_MAP[airlineCode] || airlineCode;
 
@@ -216,6 +219,7 @@
         let html = `<h3>共找到 ${flights.length} 个航班：</h3>`;
 
         for (const airline in grouped) {
+          const meta = metaMap[airline.slice(0, 2)] || {};
           html += `
             <h2 style="
               margin-top:40px;
