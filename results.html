@@ -172,6 +172,8 @@
     } else {
       const data = JSON.parse(stored);
 
+      console.log("Recieved:", stored.toString())
+
       if (!data.results || data.results.length === 0) {
         resultContainer.innerHTML = "<p>没有找到符合条件的航班。</p>";
       } else {
