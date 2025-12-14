@@ -220,7 +220,7 @@
         for (const airline in grouped) {
           const airlineName = AIRLINE_MAP[airlineCode] || airlineCode;
           const meta = metaMap[airlineCode] || {};
-          
+
           html += `
             <h2 style="
               margin-top:40px;
@@ -232,6 +232,10 @@
           `;
 
           grouped[airline].forEach(flight => {
+            
+            // Only show redeemable tickets
+            if (!flight.can_redeem) return;
+
             html += `
               <li style="
                 background:#fff;
