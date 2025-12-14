@@ -125,9 +125,17 @@
     // helper func
     function mapCabinClass(raw) {
       if (!raw) return "—";
-      const key = raw.toLowerCase().replace(/[-\s]/g, "_");
-      return CLASS_MAP[key] || raw;
+
+      // Split by comma, trim, map each part
+      const classes = raw.split(",").map(c => {
+        const key = c.trim().toLowerCase().replace(/[-\s]/g, "_");
+        return CLASS_MAP[key] || c.trim();
+      });
+
+      // Join back as readable string
+      return classes.join(", ");
     }
+
   </script>
 
   <script>
