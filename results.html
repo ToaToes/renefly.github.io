@@ -216,7 +216,7 @@
         });
 
         // Render results in a simple readable format
-        let html = `<h3>共找到 ${flights.length} 个航班：</h3>`;
+        let html = `<h3>共找到 ${allFlights.length} 个航班：</h3>`;
 
         for (const airline in grouped) {
           const meta = metaMap[airline.slice(0, 2)] || {};
