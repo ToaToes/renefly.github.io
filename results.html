@@ -189,7 +189,7 @@
         const grouped = {};
         flights.forEach(f => {
           const airlineCode = f.flight_no?.slice(0, 2) || meta.airline || "未知航司";
-          const airlineName = AIRLINE_MAP[f.airlineCode] || f.airlineCode;
+          const airlineName = AIRLINE_MAP[airlineCode] || airlineCode;
 
           if (!grouped[airlineName]) grouped[airlineName] = [];
           grouped[airlineName].push(f);
@@ -223,7 +223,7 @@
                 <strong>航班号：${flight.flight_no}</strong><br/>
                 日期：${meta.depart_date || "—"}<br/>
                 出发机场：${flight.origin}<br/>
-                出发时间：${flight.depart_date || "—"}<br>
+                出发时间：${flight.depart_time || "—"}<br>
                 到达机场：${flight.destination}<br/>
                 到达时间：${flight.arrival_time || "—"}<br/>
                 舱等：${CLASS_MAP[meta.cabin_class] || meta.cabin_class}<br/>
