@@ -231,7 +231,7 @@
             <ul style="list-style:none; padding:0;">
           `;
 
-          grouped[airline].forEach(flight => {
+          grouped[airlineCode].forEach(flight => {
             
             // Only show redeemable tickets
             if (!flight.can_redeem) return;
