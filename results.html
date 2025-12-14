@@ -176,7 +176,10 @@
 
       // Retrieving Data
       const downstream = data.downstream?.[0];
+      //flights → per-flight info (times, stops, miles)
+      // meta → shared info (date, cabin, airline)
       let flights = downstream?.flights || [];
+      const meta = downstream?.results || {};
 
       if (flights.length === 0) {
         resultContainer.innerHTML = "<p>没有找到符合条件的航班。</p>";
@@ -185,7 +188,9 @@
         // Group flights by airline
         const grouped = {};
         flights.forEach(f => {
-          const airlineName = AIRLINE_MAP[f.airline] || f.airline;
+          const airlineCode = f.flight_no?.slice(0, 2) || meta.airline || "未知航司";
+          const airlineName = AIRLINE_MAP[f.airlineCode] || f.airlineCode;
+
           if (!grouped[airlineName]) grouped[airlineName] = [];
           grouped[airlineName].push(f);
         });
@@ -216,15 +221,15 @@
                 text-align:left;
               ">
                 <strong>航班号：${flight.flight_no}</strong><br/>
-                日期：${flight.depart_date}<br/>
+                日期：${meta.depart_date || "—"}<br/>
                 出发机场：${flight.origin}<br/>
-                出发时间：${flight.depart_date}<br>
+                出发时间：${flight.depart_date || "—"}<br>
                 到达机场：${flight.destination}<br/>
-                到达时间：${flight.arrival_time}
-                舱等：${CLASS_MAP[flight.cabin_class] || flight.cabin_class}<br/>
+                到达时间：${flight.arrival_time || "—"}<br/>
+                舱等：${CLASS_MAP[meta.cabin_class] || meta.cabin_class}<br/>
                 中转次数：${flight.stop}<br/>
-                中转机场：${flight.stop_airports}<br/>
-                是否可兑换：${flight.can_redeem}<br/>
+                中转机场：${flight.stop_airports || "—"}<br/>
+                是否可兑换：${flight.can_redeem ? "是" : "否"}<br/>
                 <strong>价格：${flight.miles} 元</strong>
               </li>
             `;
