@@ -122,6 +122,15 @@
 
 
   <script>
+    // helper func
+    function mapCabinClass(raw) {
+      if (!raw) return "—";
+      const key = raw.toLowerCase().replace(/[-\s]/g, "_");
+      return CLASS_MAP[key] || raw;
+    }
+  </script>
+
+  <script>
     // Parse URL parameters
     const params = new URLSearchParams(window.location.search);
 
@@ -252,13 +261,6 @@
     */
   </script>
 
-  <script>
-    function mapCabinClass(raw) {
-      if (!raw) return "—";
-      const key = raw.toLowerCase().replace(/[-\s]/g, "_");
-      return CLASS_MAP[key] || raw;
-    }
-  </script>
   
 </body>
 </html>
