@@ -64,6 +64,18 @@
         console.error("Failed to set persistence:", error);
     });
 
+    // ------------------------------
+    // Prevent duplicate backend request on reload
+    // ------------------------------
+    const flightResult = sessionStorage.getItem("flight_result");
+
+    if (flightResult && flightResult !== "__PENDING__") {
+        // Request is still in progress, stay on loading page
+        console.log("Results already exist -> redirecting");
+        window.location.href = "results.html" + window.location.search;
+    }
+
+
     // Protect this page
     auth.onAuthStateChanged(async (user) => {
 
@@ -74,20 +86,20 @@
         document.getElementById("auth-blocker").style.display = "none"; // hide blocker
       }
 
-      
-      // MUST HAVE: flight payload from search.html
-      if (!sessionStorage.getItem("flight_payload")) {
-          alert("You cannot access this page directly.");
-          window.location.href = "search.html";
-          return;
-      }
-
       // Read payload AFTER user is verified
       const payloadStr = sessionStorage.getItem("flight_payload");
       if (!payloadStr) {
-          alert("Error: No payload found.");
+          alert("Invalid entry");
+          window.location.href = "search.html";
           return;
       }
+      
+      // MUST HAVE: flight payload from search.html
+      if (sessionStorage.getItem("flight_result") === "__PENDING__") {
+          console.log("Request already running, waiting for WebSocket ...");
+          return;
+      }
+
 
       const payload = JSON.parse(payloadStr);
 
@@ -115,48 +127,55 @@
       console.log("Payload being sent:");
       console.log(payload);
 
-      
+      // -----------------------------------
+      // Mark request as in-progress
+      // -----------------------------------
+      sessionStorage.setItem("flight_result", "__PENDING__");
+
+
       // SEND REQUEST HERE
-      let apiResult;
-      try {
-          const response = await fetch("https://jp.renefly.com/search", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": "Bearer " + idToken.trim()
-              },
-              credentials: "include",
-              body: JSON.stringify(payload)
-          });
+      const res = await fetch("https://jp.renefly.com/search",{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + idToken
+        },
+        body: JSON.stringify(payload)
+      });
 
-          // DEBUG: Log response info
-          console.log(">>> Backend responded <<<");
-          console.log("Status:", response.status);
-          console.log("Response Headers:", Object.fromEntries(response.headers.entries()));
+      const data = await res.json();
+      const uuid = data.request_uuid;
 
-          apiResult = await response.json();
+      // WebSocket connection
+      const ws = new WebSocket(`wss://jp.renefly.com/ws/flights/${uuid}`)
 
-          console.log("Response JSON:", apiResult);
-
-      } catch (err) {
-          console.error("Backend error:", err);
-          alert("Backend request failed.");
-          return;
+      const resultStore = {
+        status: "pending",
+        results: []
       }
 
-      // Save to sessionStorage
-      sessionStorage.setItem("flight_result", JSON.stringify(apiResult));
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        console.log("WS RX:", msg);
 
-      // keep original params
-      const params = window.location.search;
+        //DONE signal
+        if (msg.type === "DONE") {
+          resultStore.status = "done";
+          sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
+          ws.close();
+          window.location.href = "results.html" + window.location.search;
+          return;
+        }
 
-      // simulate loading, then go to results.html
-      /*
-      setTimeout(() => {
-        
-      }, 20000);
-      */
-      window.location.href = "results.html" + params;
+        // airline result
+        resultStore.results.push(msg);
+        sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
+      };
+
+      ws.onerror = () => {
+        alert("WebSocket connection failed");
+      };
+
     });
 
   </script>
