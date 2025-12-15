@@ -1,0 +1,31 @@
+
+.progress-row {
+  margin-bottom: 14px;
+}
+
+.progress-label {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 14px;
+  background: #eee;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg,#3498db,#5dade2);
+  transition: width 0.4s ease;
+}
+
+.progress-status {
+  font-size: 12px;
+  margin-top: 2px;
+  color: #666;
+}
+
