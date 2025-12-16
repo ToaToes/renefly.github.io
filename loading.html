@@ -148,6 +148,11 @@
       });
 
       const data = await res.json();
+
+      console.group("/search HTTP response");
+      console.log(data);
+      console.groupEnd();
+
       const uuid = data.request_uuid;
       sessionStorage.setItem("flight_uuid", uuid);
 
@@ -180,37 +185,48 @@
 
       ws.onmessage = (event) => {
 
+        console.group("WebSocket RX (raw)");
+        console.log("Raw event.data:", event.data);
+
+        let msg
+
         try {
-          const msg = JSON.parse(event.data);
-          console.log("WS RX:", msg);
-
-          // Handle even error messages
-          const airline = msg?.results?.airline || `UNKNOWN_${finishedAirlines.size}`;
-
-          // Avoid duplicates
-          if (finishedAirlines.has(airline)) return;
-
-          finishedAirlines.add(airline);
-
-          const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{}');
-          storedResult.downstream.push(msg);
-          sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
-
-          // Keep a history log
-          const history = JSON.parse(sessionStorage.getItem("flight_history") || '[]');
-          history.push(msg);
-          sessionStorage.setItem("flight_history", JSON.stringify(history));
-
-          // Check completion
-          if (finishedAirlines.size >= expectedAirlines.length || expectedAirlines.length === 0) {
-            storedResult.status = "done";
-            sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
-            ws.close();
-            window.location.href = "results.html" + window.location.search;
-          }
+        msg = JSON.parse(event.data);
+        console.log("WS RX:", msg);
         } catch (e) {
           console.error("Failed to parse WS message", e);
+          console.groupEnd();
+          return;
         }
+
+        console.log("Parsed message:", msg);
+        console.groupEnd();
+
+        // Handle even error messages
+        const airline = msg?.results?.airline || `UNKNOWN_${finishedAirlines.size}`;
+
+        // Avoid duplicates
+        if (finishedAirlines.has(airline)) return;
+
+        finishedAirlines.add(airline);
+
+        const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{"status":"pending","downstream":[]}');
+        storedResult.downstream.push(msg);
+        sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
+
+        // Keep a history log
+        const history = JSON.parse(sessionStorage.getItem("flight_history") || '[]');
+        history.push(msg);
+        sessionStorage.setItem("flight_history", JSON.stringify(history));
+
+        // Check completion
+        if (finishedAirlines.size >= expectedAirlines.length || expectedAirlines.length === 0) {
+          storedResult.status = "done";
+          sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
+          ws.close();
+          window.location.href = "results.html" + window.location.search;
+        }
+
 
       };
 
