@@ -203,11 +203,11 @@
 
     // helper func
     function renderProgressFromStorage() {
-      const stored = sessionStorage.getItem("flight_result");
-      if (!stored) return;
 
-      const data = JSON.parse(stored);
-      const downstream = data.downstream || [];
+      const data = getFlightResult();
+      if (!data) return;
+
+      const downstream = Array.isArray(data.downstream) ? data.downstream : [];
 
       downstream.forEach(item => {
         const airline = item?.results?.airline;
@@ -239,9 +239,19 @@
 
     // Debug: show backend payloads in console
     function logBackendPayloads() {
-      const history = JSON.parse(sessionStorage.getItem("flight_history") || "[]");
+      let history = [];
+      const raw = sessionStorage.getItem("flight_history");
+      if (raw) {
+        try {
+          history = JSON.parse(raw);
+        } catch(e) {
+          console.warn("Invalid flight_history:", raw);
+        }
+      }
+
       console.log("--- Backend WebSocket Payloads ---");
       history.forEach((msg, idx) => console.log(`[${idx+1}]`, msg));
+
     }
 
     // Call it once on page load
@@ -257,16 +267,14 @@
 
     function render(){
       const resultContainer = document.getElementById("results");
-      const stored = sessionStorage.getItem("flight_result");
+      const stored = getFlightResult();
 
-      if (!stored || stored === "__PENDING__") {
+      if (!stored || stored.status === "pending") {
         resultContainer.innerHTML = "<p>航班搜索仍在进行中...</p>";
         return;
       }
 
-      const data = JSON.parse(stored);
-      const downstream = data.downstream || [];
-
+      const downstream = Array.isArray(data.downstream) ? data.downstream : [];
       // Collect all flights from all successful airlines
       const allFlights = [];
       // store meta info per airline
@@ -354,6 +362,27 @@
 
     liveRenderLoop();           // initial render
     setInterval(liveRenderLoop, 1000);  // auto-update every second
+
+  </script>
+
+
+  <script>
+    // Helper to get flight_result from sessionStorage
+    function getFlightResult() {
+      const raw = sessionStorage.getItem("flight_result");
+      if (!raw) return null;
+      
+      if (raw === "__PENDING__") {
+        return { status: "pending", downstream: [] }; // treat pending as object
+      }
+
+      try {
+        return JSON.parse(raw);
+      } catch (e) {
+        console.warn("Invalid flight_result JSON:", raw);
+        return { status: "pending", downstream: [] };
+      }
+    }
 
   </script>
   
