@@ -350,46 +350,6 @@
     liveRenderLoop();           // initial render
     setInterval(liveRenderLoop, 1000);  // auto-update every second
 
-    /* 
-    ws.onmessage = e => {
-      const msg = JSON.parse(e.data);
-
-      switch (msg.type) {
-        case "AIRLINE_PENDING":
-          progressState[msg.airline] = { done: false, status: "loading" };
-          renderProgressBars();
-          break;
-
-        case "AIRLINE_RESULT":
-          airlineResults[msg.results.airline] = msg;
-          progressState[msg.results.airline] = {
-            done: true,
-            status: msg.status
-          };
-          renderProgressBars();
-          renderResults();
-          break;
-
-        case "DONE":
-          ws.close();
-          break;
-      }
-    };
-
-    ws.onerror = () => {
-      alert("WebSocket connection failed");
-    };
-
-    // --- Live loop ---
-    function liveRenderLoop() {
-      updateProgressFromResults();
-      renderProgressBars();
-      renderResults();
-    }
-
-    liveRenderLoop();
-    setInterval(liveRenderLoop, 800);
-    */
   </script>
   
 </body>
