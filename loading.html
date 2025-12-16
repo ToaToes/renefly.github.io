@@ -152,7 +152,8 @@
       sessionStorage.setItem("flight_uuid", uuid);
 
       // WebSocket connection
-      const ws = new WebSocket(`wss://jp.renefly.com/ws/flights/${uuid}`)
+      const valid_uuid = encodeURIComponent(uuid);
+      const ws = new WebSocket(`wss://jp.renefly.com/ws/flights/${valid_uuid}`)
 
       const resultStore = {
         status: "pending",
