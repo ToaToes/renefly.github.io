@@ -153,7 +153,8 @@
 
       // WebSocket connection
       const valid_uuid = encodeURIComponent(uuid);
-      const ws = new WebSocket(`ws://jp.renefly.com/ws/flights/${valid_uuid}`)
+      // Difference between ws:// and wss:// depends on server config
+      const ws = new WebSocket(`wss://jp.renefly.com/ws/flights/${valid_uuid}`)
 
       const resultStore = {
         status: "pending",
