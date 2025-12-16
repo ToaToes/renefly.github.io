@@ -259,20 +259,42 @@
 
     // Debug: show backend payloads in console
     function logBackendPayloads() {
-      let history = [];
-      const raw = sessionStorage.getItem("flight_history");
-      if (raw) {
-        try {
-          history = JSON.parse(raw);
-        } catch(e) {
-          console.warn("Invalid flight_history:", raw);
-        }
+      const raw = sessionStorage.getItem("flight_result");
+
+      console.group("Backend → Frontend payload (from sessionStorage)");
+
+      if (!raw) {
+        console.warn("flight_result not found");
+        console.groupEnd();
+        return;
       }
 
-      console.log("--- Backend WebSocket Payloads ---");
-      history.forEach((msg, idx) => console.log(`[${idx+1}]`, msg));
+      console.log("Raw flight_result:", raw);
 
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch (e) {
+        console.error("JSON parse failed", e);
+        console.groupEnd();
+        return;
+      }
+
+      console.log("Parsed flight_result object:", parsed);
+
+      if (Array.isArray(parsed.downstream)) {
+        parsed.downstream.forEach((item, idx) => {
+          console.group(`Downstream[${idx}]`);
+          console.log(item);
+          console.groupEnd();
+        });
+      } else {
+        console.warn("No downstream array found");
+      }
+
+      console.groupEnd();
     }
+
 
     // Call it once on page load
     logBackendPayloads();
