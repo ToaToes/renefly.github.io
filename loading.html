@@ -218,7 +218,10 @@
 
         // Update status if present
         if (msg.status) {
-            storedResult.status = msg.status;
+            const allDone = storedResult.downstream.every(d => 
+                ["success", "error", "no_ticket", "fail", "STOP", "stopped"].includes(d.status)
+            );
+            storedResult.status = allDone ? "done" : "pending";
         }
 
         sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
