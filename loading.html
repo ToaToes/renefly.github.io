@@ -152,11 +152,22 @@
       sessionStorage.setItem("flight_uuid", uuid);
 
       // WebSocket connection
-      const first_encode_uuid = encodeURIComponent(uuid);
-      // Replace % with %25 to achieve double-encoding
-      const valid_uuid = first_encode_uuid.replace(/%/g, '%25');
+      const encoded_uuid = encodeURIComponent(uuid);
       // Difference between ws:// and wss:// depends on server config
-      const ws = new WebSocket(`wss://jp.renefly.com/ws/flights/${valid_uuid}`)
+      const ws = new WebSocket(`wss://jp.renefly.com/ws/flights/${encoded_uuid}`)
+
+      ws.onopen = function() {
+          console.log('WebSocket connected successfully');
+          
+          // 发送认证消息（如果后端需要）
+          /*
+          ws.send(JSON.stringify({
+              type: 'auth',
+              token: token,
+              uuid: uuid
+          }));
+          */
+      };
 
       const resultStore = {
         status: "pending",
@@ -168,32 +179,37 @@
       sessionStorage.setItem("flight_result", JSON.stringify({ status: "pending", downstream: [] }));
 
       ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        console.log("WS RX:", msg);
 
-        // Handle even error messages
-        const airline = msg?.results?.airline || `UNKNOWN_${finishedAirlines.size}`;
+        try {
+          const msg = JSON.parse(event.data);
+          console.log("WS RX:", msg);
 
-        // Avoid duplicates
-        if (finishedAirlines.has(airline)) return;
+          // Handle even error messages
+          const airline = msg?.results?.airline || `UNKNOWN_${finishedAirlines.size}`;
 
-        finishedAirlines.add(airline);
+          // Avoid duplicates
+          if (finishedAirlines.has(airline)) return;
 
-        const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{}');
-        storedResult.downstream.push(msg);
-        sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
+          finishedAirlines.add(airline);
 
-        // Keep a history log
-        const history = JSON.parse(sessionStorage.getItem("flight_history") || '[]');
-        history.push(msg);
-        sessionStorage.setItem("flight_history", JSON.stringify(history));
-
-        // Check completion
-        if (finishedAirlines.size >= expectedAirlines.length || expectedAirlines.length === 0) {
-          storedResult.status = "done";
+          const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{}');
+          storedResult.downstream.push(msg);
           sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
-          ws.close();
-          window.location.href = "results.html" + window.location.search;
+
+          // Keep a history log
+          const history = JSON.parse(sessionStorage.getItem("flight_history") || '[]');
+          history.push(msg);
+          sessionStorage.setItem("flight_history", JSON.stringify(history));
+
+          // Check completion
+          if (finishedAirlines.size >= expectedAirlines.length || expectedAirlines.length === 0) {
+            storedResult.status = "done";
+            sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
+            ws.close();
+            window.location.href = "results.html" + window.location.search;
+          }
+        } catch (e) {
+          console.error("Failed to parse WS message", e);
         }
 
       };
