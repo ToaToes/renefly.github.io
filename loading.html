@@ -175,6 +175,11 @@
         // airline result
         sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
 
+        // keep a full history explicitly for logging
+        const history = JSON.parse(sessionStorage.getItem("flight_history") || "[]");
+        history.push(msg);
+        sessionStorage.setItem("flight_history", JSON.stringify(history));
+
         // Check if all airlines finished
         if (finishedAirlines.size >= expectedAirlines.length || finishedAirlines.size >= msg.total_airlines_count || expectedAirlines.length === 0) {
           resultStore.status = "done";
