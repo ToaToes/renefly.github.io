@@ -159,6 +159,10 @@
         downstream: []   // matches results.html
       };
 
+
+      // Set flight_result as an object instead of a string
+      sessionStorage.setItem("flight_result", JSON.stringify({ status: "pending", downstream: [] }));
+
       ws.onmessage = (event) => {
         const msg = JSON.parse(event.data);
         console.log("WS RX:", msg);
@@ -170,28 +174,27 @@
         if (finishedAirlines.has(airline)) return;
 
         finishedAirlines.add(airline);
-        resultStore.downstream.push(msg);
 
-        // airline result
-        sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
+        const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{}');
+        storedResult.downstream.push(msg);
+        sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
 
-        // keep a full history explicitly for logging
-        const history = JSON.parse(sessionStorage.getItem("flight_history") || "[]");
+        // Keep a history log
+        const history = JSON.parse(sessionStorage.getItem("flight_history") || '[]');
         history.push(msg);
         sessionStorage.setItem("flight_history", JSON.stringify(history));
 
-        // Check if all airlines finished
-        if (finishedAirlines.size >= expectedAirlines.length || finishedAirlines.size >= msg.total_airlines_count || expectedAirlines.length === 0) {
-          resultStore.status = "done";
-          sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
+        // Check completion
+        if (finishedAirlines.size >= expectedAirlines.length || expectedAirlines.length === 0) {
+          storedResult.status = "done";
+          sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
           ws.close();
-
           window.location.href = "results.html" + window.location.search;
         }
 
       };
 
-      ws.onerror = () => {
+      ws.onerror = (err) => {
         console.error("WebSocket error", err);
         resultStore.status = "error";
         sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
