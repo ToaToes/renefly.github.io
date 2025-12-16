@@ -238,24 +238,17 @@
     }
 
     // Debug: show backend payloads in console
-    function logBackendMessages() {
+    function logBackendPayloads() {
       const history = JSON.parse(sessionStorage.getItem("flight_history") || "[]");
-      if (history.length === 0) {
-        console.log("No backend messages received yet.");
-        return;
-      }
-
-      console.log(`--- Backend WebSocket Payloads (${history.length}) ---`);
-      history.forEach((msg, idx) => {
-        console.log(`[${idx+1}]`, JSON.stringify(msg, null, 2));
-      });
+      console.log("--- Backend WebSocket Payloads ---");
+      history.forEach((msg, idx) => console.log(`[${idx+1}]`, msg));
     }
 
     // Call it once on page load
-    logBackendMessages();
+    logBackendPayloads();
 
-    // Optional: keep logging as results update
-    setInterval(logBackendMessages, 2000);
+    // Optional: keep logging as results update, check every 5 seconds
+    setInterval(logBackendPayloads, 5000);
 
 
     // ----------------------------------------------------------
