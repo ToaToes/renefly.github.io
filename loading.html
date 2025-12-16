@@ -157,22 +157,19 @@
       sessionStorage.setItem("flight_uuid", uuid);
 
       // WebSocket connection
-      const encoded_uuid = encodeURIComponent(uuid);
+      // const encoded_uuid = encodeURIComponent(uuid);
       // Difference between ws:// and wss:// depends on server config
-      const ws = new WebSocket(`wss://jp.renefly.com/ws/flights/${encoded_uuid}`)
+      const ws = new WebSocket(`wss://jp.renefly.com/ws/flights/${uuid}`)
 
       ws.onopen = function() {
-          console.log('WebSocket connected successfully');
-          
-          // 发送认证消息（如果后端需要）
-          /*
-          ws.send(JSON.stringify({
-              type: 'auth',
-              token: token,
-              uuid: uuid
-          }));
-          */
-      };
+        console.log('WebSocket connected successfully');
+        // Send initial auth/heartbeat
+        ws.send(JSON.stringify({
+            type: 'hello',
+            uuid: uuid,
+            ts: Date.now()
+        }));
+    };
 
       const resultStore = {
         status: "pending",
@@ -248,6 +245,17 @@
           window.location.href = "results.html" + window.location.search;
         }
         */
+      };
+
+      ws.onclose = function(event) {
+        console.log('WebSocket closed:', event.code, event.reason);
+        if (event.code !== 1000 && event.code !== 1005) { // normal closure codes
+          console.error('WebSocket closed abnormally:', event);
+          // Optionally retry connection
+          setTimeout(() => {
+              connectWebSocket(uuid);
+          }, 3000);
+        }
       };
 
       ws.onerror = (err) => {
