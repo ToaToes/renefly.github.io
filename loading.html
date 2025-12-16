@@ -202,6 +202,7 @@
         console.log("Parsed message:", msg);
         console.groupEnd();
 
+        /*
         // Handle even error messages
         const airline = msg?.results?.airline || `UNKNOWN_${finishedAirlines.size}`;
 
@@ -209,16 +210,36 @@
         if (finishedAirlines.has(airline)) return;
 
         finishedAirlines.add(airline);
+        */
 
         const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{"status":"pending","downstream":[]}');
-        storedResult.downstream.push(msg);
+        
+        // Append all new downstream messages (delta push)
+        if (Array.isArray(msg.downstream) && msg.downstream.length > 0) {
+            storedResult.downstream.push(...msg.downstream);
+        }
+
+        // Update status if present
+        if (msg.status) {
+            storedResult.status = msg.status;
+        }
+
         sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
 
         // Keep a history log
         const history = JSON.parse(sessionStorage.getItem("flight_history") || '[]');
-        history.push(msg);
+        if (Array.isArray(msg.downstream)) {
+            history.push(...msg.downstream);
+        }
         sessionStorage.setItem("flight_history", JSON.stringify(history));
 
+        // Close WebSocket and navigate if done
+        if (storedResult.status === "done") {
+            ws.close();
+            window.location.href = "results.html" + window.location.search;
+        }
+
+        /*
         // Check completion
         if (finishedAirlines.size >= expectedAirlines.length || expectedAirlines.length === 0) {
           storedResult.status = "done";
@@ -226,8 +247,7 @@
           ws.close();
           window.location.href = "results.html" + window.location.search;
         }
-
-
+        */
       };
 
       ws.onerror = (err) => {
