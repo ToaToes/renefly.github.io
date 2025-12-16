@@ -42,6 +42,13 @@
 
 
   <script>
+
+    // Define expected airlines
+    const params = new URLSearchParams(window.location.search);
+    const expectedAirlines = params.getAll("airline");
+    const finishedAirlines = new Set();
+
+
     const firebaseConfig = {
       apiKey: "AIzaSyBjBXmXps-wu6qIudSdD_0aGNri6WiM3vU",
       authDomain: "loginauth-8662e.firebaseapp.com",
@@ -145,34 +152,46 @@
 
       const data = await res.json();
       const uuid = data.request_uuid;
+      sessionStorage.setItem("flight_uuid", uuid);
 
       // WebSocket connection
       const ws = new WebSocket(`wss://jp.renefly.com/ws/flights/${uuid}`)
 
       const resultStore = {
         status: "pending",
-        results: []
-      }
+        downstream: []   // matches results.html
+      };
 
       ws.onmessage = (event) => {
         const msg = JSON.parse(event.data);
         console.log("WS RX:", msg);
 
-        //DONE signal
-        if (msg.type === "DONE") {
+        const airline = msg?.results?.airline;
+        if (!airline) return;
+
+        // Avoid duplicates
+        if (finishedAirlines.has(airline)) return;
+
+        finishedAirlines.add(airline);
+        resultStore.downstream.push(msg);
+
+        // airline result
+        sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
+
+        // Check if all airlines finished
+        if (finishedAirlines.size === expectedAirlines.length) {
           resultStore.status = "done";
           sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
           ws.close();
+
           window.location.href = "results.html" + window.location.search;
-          return;
         }
 
-        // airline result
-        resultStore.results.push(msg);
-        sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
       };
 
       ws.onerror = () => {
+        resultStore.status = "error";
+        sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
         alert("WebSocket connection failed");
       };
 
