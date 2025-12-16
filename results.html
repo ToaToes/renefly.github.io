@@ -315,8 +315,8 @@
       // Group flights by airline
       const grouped = {};
       allFlights.forEach(f => {
-        const airlineCode = f.flight_no?.slice(0, 2) || meta.airline || "未知航司";
-        (group[airlineCode] ||= []).push(f);
+        const airlineCode = f.flight_no?.slice(0, 2) || metaMap[f.airline]?.airline || "未知航司";
+        (grouped[airlineCode] ||= []).push(f);
       });
 
       // Render results in a simple readable format
