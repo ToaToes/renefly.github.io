@@ -101,14 +101,14 @@
           return;
       }
       
-      // MUST HAVE: flight payload from search.html
-      if (sessionStorage.getItem("flight_result") === "__PENDING__") {
-          console.log("Request already running, waiting for WebSocket ...");
-          return;
-      }
-
-
       const payload = JSON.parse(payloadStr);
+      // MUST HAVE: flight payload from search.html
+
+      // -----------------------------------
+      // Mark request as in-progress
+      // -----------------------------------
+      sessionStorage.setItem("flight_result", "__PENDING__");
+
 
       // Fetch ID token
       let idToken;
@@ -134,10 +134,7 @@
       console.log("Payload being sent:");
       console.log(payload);
 
-      // -----------------------------------
-      // Mark request as in-progress
-      // -----------------------------------
-      sessionStorage.setItem("flight_result", "__PENDING__");
+
 
 
       // SEND REQUEST HERE
@@ -166,8 +163,8 @@
         const msg = JSON.parse(event.data);
         console.log("WS RX:", msg);
 
-        const airline = msg?.results?.airline;
-        if (!airline) return;
+        // Handle even error messages
+        const airline = msg?.results?.airline || `UNKNOWN_${finishedAirlines.size}`;
 
         // Avoid duplicates
         if (finishedAirlines.has(airline)) return;
@@ -179,7 +176,7 @@
         sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
 
         // Check if all airlines finished
-        if (finishedAirlines.size === expectedAirlines.length) {
+        if (finishedAirlines.size >= expectedAirlines.length || finishedAirlines.size >= msg.total_airlines_count || expectedAirlines.length === 0) {
           resultStore.status = "done";
           sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
           ws.close();
@@ -190,10 +187,23 @@
       };
 
       ws.onerror = () => {
+        console.error("WebSocket error", err);
         resultStore.status = "error";
         sessionStorage.setItem("flight_result", JSON.stringify(resultStore));
         alert("WebSocket connection failed");
+        // Force redirect even on WebSocket error
+        window.location.href = "results.html" + window.location.search;
       };
+
+      // Safety fallback: redirect after 20 seconds in case WS hangs
+      setTimeout(() => {
+        const stored = JSON.parse(sessionStorage.getItem("flight_result") || "{}");
+        if (stored.status !== "done") {
+          stored.status = "done";
+          sessionStorage.setItem("flight_result", JSON.stringify(stored));
+          window.location.href = "results.html" + window.location.search;
+        }
+      }, 20000);
 
     });
 
