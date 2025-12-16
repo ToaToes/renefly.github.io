@@ -227,7 +227,7 @@
       const data = getFlightResult();
       if (!data) return;
 
-      const downstream = Array.isArray(stored.downstream) ? stored.downstream : [];
+      const downstream = Array.isArray(data.downstream) ? data.downstream : [];
 
       downstream.forEach(item => {
         const airline = item?.results?.airline;
