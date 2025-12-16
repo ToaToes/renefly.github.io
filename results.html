@@ -143,6 +143,8 @@
   <script>
     // Parse URL parameters
     const params = new URLSearchParams(window.location.search);
+    // Get stored UUID
+    // const uuid = sessionStorage.getItem("flight_uuid");
 
     // Helper to safely get value or default
     const getValue = (key, fallback = "未选择") => {
@@ -180,9 +182,38 @@
 
 
     // --- Progress state ---
-    const expectedAirlines = params.getAll("airline");
+
+    if (!uuid) {
+      alert("Invalid entry");
+      location.href = "search.html";
+    }
+
+    // const ws = new WebSocket(`wss://jp.renefly.com/ws/flights/${uuid}`);
+
     const progressState = {};
+    const airlineResults = {};
+
+    const expectedAirlines = params.getAll("airline");
     expectedAirlines.forEach(a => { progressState[a] = { done:false, status:"loading" }; });
+
+    // helper func
+    function renderProgressFromStorage() {
+      const stored = sessionStorage.getItem("flight_result");
+      if (!stored) return;
+
+      const data = JSON.parse(stored);
+      const downstream = data.downstream || [];
+
+      downstream.forEach(item => {
+        const airline = item?.results?.airline;
+        if (!airline) return;
+        progressState[airline] = { done: true, status: item.status };
+      });
+
+      renderProgressBars();
+    }
+
+    // renderProgressFromStorage();
 
     function renderProgressBars() {
       const container = document.getElementById("progress-bars");
@@ -201,6 +232,7 @@
       container.innerHTML = html;
     }
 
+    /*
     function updateProgressFromResults() {
       const stored = sessionStorage.getItem("flight_result");
       if (!stored || stored === "__PENDING__") return;
@@ -212,6 +244,7 @@
         progressState[airline] = { done: true, status: item.status };
       });
     }
+    */
 
     // ----------------------------------------------------------
     // ADDED — load API results from sessionStorage
@@ -221,20 +254,20 @@
       const resultContainer = document.getElementById("results");
       const stored = sessionStorage.getItem("flight_result");
 
-      if (!stored || stored === "__PENDING__"){
-        container.innerHTML = "<p>正在等待航班结果 ...</p>"
+      if (!stored || stored === "__PENDING__") {
+        resultContainer.innerHTML = "<p>航班搜索仍在进行中...</p>";
         return;
       }
 
       const data = JSON.parse(stored);
       const downstream = data.downstream || [];
-      console.log("Recieved:", stored.toString())
 
       // Collect all flights from all successful airlines
-      let allFlights = [];
-      const metaMap = {}; // store meta info per airline
+      const allFlights = [];
+      // store meta info per airline
+      const metaMap = {};
 
-      results.forEach(item => {
+      downstream.forEach(item => {
         if (item.status === "success" && Array.isArray(item.flights)) {
           allFlights.push(...item.flights);
           metaMap[item.results.airline] = item.results;
@@ -308,6 +341,45 @@
 
     }
 
+    // --- Live loop to update progress bars & results ---
+    function liveRenderLoop() {
+        renderProgressFromStorage();
+        render();
+    }
+
+    liveRenderLoop();           // initial render
+    setInterval(liveRenderLoop, 1000);  // auto-update every second
+
+    /* 
+    ws.onmessage = e => {
+      const msg = JSON.parse(e.data);
+
+      switch (msg.type) {
+        case "AIRLINE_PENDING":
+          progressState[msg.airline] = { done: false, status: "loading" };
+          renderProgressBars();
+          break;
+
+        case "AIRLINE_RESULT":
+          airlineResults[msg.results.airline] = msg;
+          progressState[msg.results.airline] = {
+            done: true,
+            status: msg.status
+          };
+          renderProgressBars();
+          renderResults();
+          break;
+
+        case "DONE":
+          ws.close();
+          break;
+      }
+    };
+
+    ws.onerror = () => {
+      alert("WebSocket connection failed");
+    };
+
     // --- Live loop ---
     function liveRenderLoop() {
       updateProgressFromResults();
@@ -317,6 +389,7 @@
 
     liveRenderLoop();
     setInterval(liveRenderLoop, 800);
+    */
   </script>
   
 </body>
