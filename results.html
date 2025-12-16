@@ -227,7 +227,7 @@
       const data = getFlightResult();
       if (!data) return;
 
-      const downstream = Array.isArray(data.downstream) ? data.downstream : [];
+      const downstream = Array.isArray(stored.downstream) ? stored.downstream : [];
 
       downstream.forEach(item => {
         const airline = item?.results?.airline;
@@ -294,7 +294,7 @@
         return;
       }
 
-      const downstream = Array.isArray(data.downstream) ? data.downstream : [];
+      const downstream = Array.isArray(stored.downstream) ? stored.downstream : [];
       // Collect all flights from all successful airlines
       const allFlights = [];
       // store meta info per airline
