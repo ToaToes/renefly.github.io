@@ -141,6 +141,26 @@
   </script>
 
   <script>
+    // Helper to get flight_result from sessionStorage
+    function getFlightResult() {
+      const raw = sessionStorage.getItem("flight_result");
+      if (!raw) return null;
+      
+      if (raw === "__PENDING__") {
+        return { status: "pending", downstream: [] }; // treat pending as object
+      }
+
+      try {
+        return JSON.parse(raw);
+      } catch (e) {
+        console.warn("Invalid flight_result JSON:", raw);
+        return { status: "pending", downstream: [] };
+      }
+    }
+
+  </script>
+
+  <script>
     // Parse URL parameters
     const params = new URLSearchParams(window.location.search);
     // Get stored UUID
@@ -362,27 +382,6 @@
 
     liveRenderLoop();           // initial render
     setInterval(liveRenderLoop, 1000);  // auto-update every second
-
-  </script>
-
-
-  <script>
-    // Helper to get flight_result from sessionStorage
-    function getFlightResult() {
-      const raw = sessionStorage.getItem("flight_result");
-      if (!raw) return null;
-      
-      if (raw === "__PENDING__") {
-        return { status: "pending", downstream: [] }; // treat pending as object
-      }
-
-      try {
-        return JSON.parse(raw);
-      } catch (e) {
-        console.warn("Invalid flight_result JSON:", raw);
-        return { status: "pending", downstream: [] };
-      }
-    }
 
   </script>
   
