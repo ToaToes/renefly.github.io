@@ -144,7 +144,7 @@
     // Parse URL parameters
     const params = new URLSearchParams(window.location.search);
     // Get stored UUID
-    // const uuid = sessionStorage.getItem("flight_uuid");
+    let uuid = sessionStorage.getItem("flight_uuid");
 
     // Helper to safely get value or default
     const getValue = (key, fallback = "未选择") => {
@@ -182,6 +182,11 @@
 
 
     // --- Progress state ---
+
+    // Fallback to URL param if needed
+    if (!uuid) {
+        uuid = params.get("uuid");  // if you passed ?uuid=xxx
+    }
 
     if (!uuid) {
       alert("Invalid entry");
@@ -232,19 +237,26 @@
       container.innerHTML = html;
     }
 
-    /*
-    function updateProgressFromResults() {
-      const stored = sessionStorage.getItem("flight_result");
-      if (!stored || stored === "__PENDING__") return;
-      const data = JSON.parse(stored);
-      const downstream = data.downstream || [];
-      downstream.forEach(item => {
-        const airline = item?.results?.airline;
-        if (!airline) return;
-        progressState[airline] = { done: true, status: item.status };
+    // Debug: show backend payloads in console
+    function logBackendMessages() {
+      const history = JSON.parse(sessionStorage.getItem("flight_history") || "[]");
+      if (history.length === 0) {
+        console.log("No backend messages received yet.");
+        return;
+      }
+
+      console.log(`--- Backend WebSocket Payloads (${history.length}) ---`);
+      history.forEach((msg, idx) => {
+        console.log(`[${idx+1}]`, JSON.stringify(msg, null, 2));
       });
     }
-    */
+
+    // Call it once on page load
+    logBackendMessages();
+
+    // Optional: keep logging as results update
+    setInterval(logBackendMessages, 2000);
+
 
     // ----------------------------------------------------------
     // ADDED — load API results from sessionStorage
