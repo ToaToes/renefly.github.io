@@ -182,20 +182,6 @@
 
       ws.onmessage = (event) => {
 
-        // Ignore empty done signals without downstream or terminal
-        if (
-          msg.status === "done" &&
-          !msg.terminal &&
-          (!Array.isArray(msg.downstream) || msg.downstream.length === 0)
-        ) {
-          console.warn("Ignoring non-terminal empty done message", msg);
-          return;
-        }
-
-
-        console.group("WebSocket RX (raw)");
-        console.log("Raw event.data:", event.data);
-
         let msg
 
         try {
@@ -206,6 +192,19 @@
           console.groupEnd();
           return;
         }
+
+        // Ignore empty done signals without downstream or terminal
+        if (
+          msg.status === "done" &&
+          !msg.terminal &&
+          (!Array.isArray(msg.downstream) || msg.downstream.length === 0)
+        ) {
+          console.warn("Ignoring non-terminal empty done message", msg);
+          return;
+        }
+
+        console.group("WebSocket RX (raw)");
+        console.log("Raw event.data:", event.data);
 
         console.log("Parsed message:", msg);
         console.groupEnd();
