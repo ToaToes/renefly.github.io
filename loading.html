@@ -182,32 +182,27 @@
 
       ws.onmessage = (event) => {
 
+        console.group("WebSocket RX (raw)");
+        console.log("Raw event.data:", event.data);
+
         let msg
 
         try {
-        msg = JSON.parse(event.data);
-        console.log("WS RX:", msg);
+          msg = JSON.parse(event.data);
+          console.log("WS RX:", msg);
         } catch (e) {
           console.error("Failed to parse WS message", e);
           console.groupEnd();
           return;
         }
+        console.groupEnd();
 
-        // Ignore empty done signals without downstream or terminal
-        if (
-          msg.status === "done" &&
-          !msg.terminal &&
-          (!Array.isArray(msg.downstream) || msg.downstream.length === 0)
-        ) {
-          console.warn("Ignoring non-terminal empty done message", msg);
-          return;
+        // Ignore ping messages (keep-alive)
+        if (msg.type === "ping") {
+            console.log("Ping received, ignoring");
+            return;
         }
 
-        console.group("WebSocket RX (raw)");
-        console.log("Raw event.data:", event.data);
-
-        console.log("Parsed message:", msg);
-        console.groupEnd();
 
         /*
         // Handle even error messages
@@ -221,11 +216,16 @@
 
         const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{"status":"pending","downstream":[]}');
         
-        // Append all new downstream messages (delta push)
-        if (Array.isArray(msg.downstream)) {
-          const stored = JSON.parse(sessionStorage.getItem("flight_result") || '{"status":"pending","downstream":[]}');
-          stored.downstream.push(...msg.downstream);
-          sessionStorage.setItem("flight_result", JSON.stringify(stored));
+        // Append any downstream messages
+        if (Array.isArray(msg.downstream) && msg.downstream.length > 0) {
+            storedResult.downstream.push(...msg.downstream);
+
+            // Log each error if present
+            msg.downstream.forEach(d => {
+                if (d.status === "error") {
+                    console.error("Flight error:", d.error?.message || d.results);
+                }
+            });
         }
 
         // Update status if present
@@ -238,6 +238,12 @@
             storedResult.status = allDone ? "done" : "pending";
         }
         */
+
+        // Update stored flight_result status
+        const allDone = storedResult.downstream.every(d =>
+            ["success", "error", "no_ticket", "fail", "STOP", "stopped"].includes(d.status)
+        );
+        storedResult.status = allDone ? "done" : "pending";
 
         sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
 
@@ -256,14 +262,13 @@
         }
         */
 
-        if (msg.terminal === true) {
+        if (msg.terminal === true || storedResult.status === "done") {
             // storedResult.status = "done";
             // sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
+            console.log("All flights done or terminal message received, closing WS...");
             ws.close();
             window.location.href = "results.html" + window.location.search;
         }
-
-
 
         /*
         // Check completion
