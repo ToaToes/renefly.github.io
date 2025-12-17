@@ -219,13 +219,19 @@
         // Append any downstream messages
         if (Array.isArray(msg.downstream) && msg.downstream.length > 0) {
             storedResult.downstream.push(...msg.downstream);
+        } else if (msg.type === "flight_search_response") {
+            // Wrap top-level response into downstream for uniform handling
+            const wrapped = {
+                status: msg.status || "unknown",
+                results: msg.results || null,
+                error: msg.error || null
+            };
+            storedResult.downstream.push(wrapped);
 
-            // Log each error if present
-            msg.downstream.forEach(d => {
-                if (d.status === "error") {
-                    console.error("Flight error:", d.error?.message || d.results);
-                }
-            });
+            // Log errors immediately
+            if (wrapped.status === "error") {
+                console.error("Flight error:", wrapped.error?.message || wrapped.results);
+            }
         }
 
         // Update status if present
@@ -251,6 +257,12 @@
         const history = JSON.parse(sessionStorage.getItem("flight_history") || '[]');
         if (Array.isArray(msg.downstream)) {
             history.push(...msg.downstream);
+        } else if (msg.type === "flight_search_response") {
+            history.push({
+                status: msg.status || "unknown",
+                results: msg.results || null,
+                error: msg.error || null
+            });
         }
         sessionStorage.setItem("flight_history", JSON.stringify(history));
 
