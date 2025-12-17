@@ -223,8 +223,10 @@
         const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{"status":"pending","downstream":[]}');
         
         // Append all new downstream messages (delta push)
-        if (Array.isArray(msg.downstream) && msg.downstream.length > 0) {
-            storedResult.downstream.push(...msg.downstream);
+        if (Array.isArray(msg.downstream)) {
+          const stored = JSON.parse(sessionStorage.getItem("flight_result") || '{"status":"pending","downstream":[]}');
+          stored.downstream.push(...msg.downstream);
+          sessionStorage.setItem("flight_result", JSON.stringify(stored));
         }
 
         // Update status if present
@@ -256,8 +258,8 @@
         */
 
         if (msg.terminal === true) {
-            storedResult.status = "done";
-            sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
+            // storedResult.status = "done";
+            // sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
             ws.close();
             window.location.href = "results.html" + window.location.search;
         }
@@ -275,13 +277,12 @@
         */
       };
 
-      ws.onclose = function(event) {
-        console.log('WebSocket closed:', event.code, event.reason);
-        if (event.code !== 1000 && event.code !== 1005) { // normal closure codes
-          console.error('WebSocket closed abnormally:', event);
-          // Optionally retry connection
+      // When WS closes unexpectedly
+      ws.onclose = (event) => {
+        console.warn("WS closed", event.code, event.reason);
+        if (!sessionStorage.getItem("flight_result")?.includes('"status":"done"')) {
           setTimeout(() => {
-              connectWebSocket(uuid);
+            location.reload();
           }, 3000);
         }
       };
@@ -295,14 +296,10 @@
         window.location.href = "results.html" + window.location.search;
       };
 
-      // Safety fallback: redirect after 20 seconds in case WS hangs
+      // Safe fallback, no WS kill
       setTimeout(() => {
-        const stored = JSON.parse(sessionStorage.getItem("flight_result") || "{}");
-        if (stored.status !== "done") {
-          console.warn("WS timeout, redirecting without forcing done");
-          window.location.href = "results.html" + window.location.search;
-        }
-      }, 20000);
+        console.warn("Still loading after 120s, staying on page");
+      }, 120000);
 
 
     });
@@ -314,7 +311,7 @@
   <div id="auth-blocker" style="display: block;"></div>
 
   <div class="spinner"></div>
-  <p>正在加载航班信息，请稍候...</p>
+  <p>正在加载航班信息（部分航司可能需要 1 至 2 分钟）…</p>
   
 </body>
 </html>
