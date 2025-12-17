@@ -182,6 +182,17 @@
 
       ws.onmessage = (event) => {
 
+        // Ignore empty done signals without downstream or terminal
+        if (
+          msg.status === "done" &&
+          !msg.terminal &&
+          (!Array.isArray(msg.downstream) || msg.downstream.length === 0)
+        ) {
+          console.warn("Ignoring non-terminal empty done message", msg);
+          return;
+        }
+
+
         console.group("WebSocket RX (raw)");
         console.log("Raw event.data:", event.data);
 
@@ -217,12 +228,15 @@
         }
 
         // Update status if present
+        /*
+        // Computing done locally and closing the WebSocket
         if (msg.status) {
             const allDone = storedResult.downstream.every(d => 
                 ["success", "error", "no_ticket", "fail", "STOP", "stopped"].includes(d.status)
             );
             storedResult.status = allDone ? "done" : "pending";
         }
+        */
 
         sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
 
@@ -233,11 +247,22 @@
         }
         sessionStorage.setItem("flight_history", JSON.stringify(history));
 
+        /*
         // Close WebSocket and navigate if done
         if (storedResult.status === "done") {
             ws.close();
             window.location.href = "results.html" + window.location.search;
         }
+        */
+
+        if (msg.terminal === true) {
+            storedResult.status = "done";
+            sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
+            ws.close();
+            window.location.href = "results.html" + window.location.search;
+        }
+
+
 
         /*
         // Check completion
@@ -274,11 +299,11 @@
       setTimeout(() => {
         const stored = JSON.parse(sessionStorage.getItem("flight_result") || "{}");
         if (stored.status !== "done") {
-          stored.status = "done";
-          sessionStorage.setItem("flight_result", JSON.stringify(stored));
+          console.warn("WS timeout, redirecting without forcing done");
           window.location.href = "results.html" + window.location.search;
         }
       }, 20000);
+
 
     });
 
