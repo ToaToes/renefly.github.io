@@ -198,9 +198,18 @@
         console.groupEnd();
 
         // Ignore ping messages (keep-alive)
-        if (msg.type === "ping") {
-            console.log("Ping received, ignoring");
-            return;
+        if (msg.type === "ping") { return; }
+
+        if (msg.type === "flight_search_update") {
+            const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{"status":"pending","downstream":[]}');
+            storedResult.downstream.push(...msg.downstream);
+            storedResult.status = msg.status;
+            sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
+
+            if (msg.terminal) {
+                ws.close();
+                window.location.href = "results.html" + window.location.search;
+            }
         }
 
 
