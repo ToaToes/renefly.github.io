@@ -17,6 +17,12 @@ fetch('airports.json')
     
     dataReady = true; // Set the flag to true when data is loaded
 
+    // Clear selectedDeparture / selectedArrival on page load
+    selectedDeparture = null;
+    selectedArrival = null;
+    document.getElementById('departureResult').style.display = 'none';
+    document.getElementById('arrivalResult').style.display = 'none';
+
   })
   .catch(err => console.error("Failed to load airports.json:", err));
 
