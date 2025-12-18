@@ -203,8 +203,11 @@
     realDate.addEventListener("change", () => {
       fakeDate.value = realDate.value;
 
-      // force close picker
-      // realDate.blur();
+      // Only blur on non-touch devices (desktop)
+      // detect if its mobile or desktop
+      if (!('ontouchstart' in window)) {
+        realDate.blur();
+      }
     });
 
   </script>
