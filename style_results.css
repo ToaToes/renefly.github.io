@@ -59,8 +59,8 @@ h2 {
    Progress Bar
    ============================== */
 .progress-row {
-  width: 60%;
-  margin: 0 auto 14px auto; /* center + spacing */
+  width: 40%; /* made narrower */
+  margin: 0 auto 24px auto; /* center + more spacing below */
 }
 
 .progress-label {
@@ -91,4 +91,3 @@ h2 {
   color: #666;
   text-align: right;
 }
-
