@@ -88,18 +88,21 @@ function displayMatches(matches, containerId, inputId) {
 ['departure', 'arrival'].forEach(inputId => {
   const input = document.getElementById(inputId);
   const containerId = inputId + 'Result';
+  const container = document.getElementById(containerId);
 
   input.addEventListener('input', e => {
     if (!dataReady) return; // do nothing if data not loaded
 
     const value = e.target.value.trim();
-    if (value === '') {
-      document.getElementById(containerId).innerHTML = '';
-      document.getElementById(containerId).style.display = 'none';
 
-      // Clear selected airport
-      if (inputId === 'departure') selectedDeparture = null;
-      if (inputId === 'arrival') selectedArrival = null;
+    // classic autocomplete state bug workaround:
+    // on every input, invalidate previous selection
+    if (inputId === 'departure') selectedDeparture = null;
+    if (inputId === 'arrival') selectedArrival = null;
+    
+    if (value === '') {
+      container.innerHTML = '';
+      container.style.display = 'none';
       return;
     }
 
