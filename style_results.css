@@ -1,0 +1,94 @@
+/* ==============================
+   General Body & Typography
+   ============================== */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background-color: #f9f9fb;
+  margin: 0;
+  padding: 30px;
+  color: #333;
+}
+
+h2 {
+  text-align: center;
+  color: #2c3e50;
+}
+
+.mild {
+  font-weight: 600; /* semibold */
+  color: #333;
+}
+
+/* ==============================
+   Selection Summary / Results Card
+   ============================== */
+.selection-summary {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+.selection-summary h3 {
+  margin-bottom: 10px;
+}
+
+.selection-summary ul {
+  list-style: none;
+  padding: 0;
+}
+
+.selection-summary li {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+/* ==============================
+   Results Container
+   ============================== */
+.results-container {
+  text-align: center;
+  margin-top: 40px;
+  color: #777;
+  font-size: 18px;
+}
+
+/* ==============================
+   Progress Bar
+   ============================== */
+.progress-row {
+  width: 60%;
+  margin: 0 auto 14px auto; /* center + spacing */
+}
+
+.progress-label {
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 14px;
+  background: #eee;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #3498db, #5dade2);
+  transition: width 0.4s ease;
+}
+
+.progress-status {
+  font-size: 12px;
+  margin-top: 2px;
+  color: #666;
+  text-align: right;
+}
+
