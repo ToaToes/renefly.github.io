@@ -69,12 +69,16 @@
     <input type="date" id="flightDate" name="flightDate" min="" required />
 
     <label for="departure">出发地:</label>
-    <input type="text" id="departure" name="departure" placeholder="输入出发城市" autocomplete="off" required />
-    <div id="departureResult" ></div>
+    <div class="autocomplete-container"></div>
+      <input type="text" id="departure" name="departure" placeholder="输入出发城市" autocomplete="off" required />
+      <div id="departureResult" ></div>
+    </div>
 
     <label for="arrival">到达地:</label>
-    <input type="text" id="arrival" name="arrival" placeholder="输入到达城市" autocomplete="off" required />
-    <div id="arrivalResult" ></div>
+    <div class="autocomplete-container">
+      <input type="text" id="arrival" name="arrival" placeholder="输入到达城市" autocomplete="off" required />
+      <div id="arrivalResult" ></div>
+    </div>
 
     
     <!-- Class Dropdown -->
