@@ -175,20 +175,20 @@
   <script>
     // Let the form handle its own submission
     document.getElementById("flightForm").addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        // Only block Enter when dropdowns are open
-        const classOptions = document.getElementById("class-options");
-        const airlineOptions = document.getElementById("airline-options");
+    if (event.key === "Enter") {
+      const classOptions = document.getElementById("class-options");
+      const airlineOptions = document.getElementById("airline-options");
 
-        if (classOptions.style.display === "block" || airlineOptions.style.display === "block") {
-          event.preventDefault(); // prevent accidental submits when dropdown is open
-        } else {
-          event.preventDefault(); // stop default to control it
-          document.getElementById("submitBtn").click(); // simulate submit button click
-        }
-
+      if (classOptions.style.display === "block" || airlineOptions.style.display === "block") {
+        event.preventDefault(); // Prevent submit if dropdown is open
+      } else {
+        event.preventDefault(); // Prevent default form submit
+        // Instead of clicking the button, just submit the form programmatically once
+        document.getElementById("flightForm").dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
       }
-    });
+    }
+  });
+
   </script>
 
 
@@ -211,88 +211,86 @@
   <!-- submit -->
   <script>
     console.log("script loaded");
+
     // ----------------------
     // 1. Form submit with validation + redirect
     // ----------------------
-    document.getElementById("flightForm").addEventListener("submit", async function (e) {
+    (function() {
+      const flightForm = document.getElementById("flightForm");
 
-      e.preventDefault(); // ← 确保先阻止默认刷新
+      // Ensure listener is attached only once
+      flightForm.addEventListener("submit", async function (e) {
+        e.preventDefault(); // Prevent default form submit
 
-      // ---------- Strict airport validation ----------
-      if (!selectedDeparture || !selectedArrival) {
-        alert("请从下拉列表选择有效的出发地和到达地！");
-        return; // STOP submission
-      }
-
-      if (selectedDeparture === selectedArrival) {
-        alert("出发地和到达地不能相同");
-        return;
-      }
-
-      // ---------- Date validation ----------
-      const inputDate = document.getElementById("flightDate").value;
-      const today = new Date().toISOString().split("T")[0];
-      if (inputDate < today) {
-        alert("不能选择过去的日期！");
-        return;
-      }
-
-      // ---------- Class/Airline validation ----------
-      const noClassChecked = document.querySelectorAll('#class-options input[type="checkbox"]:checked').length === 0;
-      const noAirlineChecked = document.querySelectorAll('#airline-options input[type="checkbox"]:checked').length === 0;
-
-      if (noClassChecked || noAirlineChecked) {
-
-        if (noClassChecked) {
-          document.getElementById("class-button").textContent = "请至少选择一个舱等";
-          alert("请至少选择一个舱等");
-        }
-        if (noAirlineChecked) {
-          document.getElementById("airline-button").textContent = "请至少选择一个航空公司";
-          alert("请至少选择一个航空公司");
+        // ---------- Strict airport validation ----------
+        if (!selectedDeparture || !selectedArrival) {
+          alert("请从下拉列表选择有效的出发地和到达地！");
+          return; // STOP submission
         }
 
-        return; // stop form
-      }
+        if (selectedDeparture === selectedArrival) {
+          alert("出发地和到达地不能相同");
+          return;
+        }
 
-      // Build JSON payload for backend
-      // Also MAP City (IATA) -> IATA only
-      const payload = {
-        airline: [...document.querySelectorAll('#airline-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
-        origin: selectedDeparture,
-        destination: selectedArrival,
-        depart_date: inputDate,
-        cabin_class: [...document.querySelectorAll('#class-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
-        stop_policy: document.getElementById("directFlight").checked ? "direct" : "any" // true=direct only, false=any
-      };
+        // ---------- Date validation ----------
+        const inputDate = document.getElementById("flightDate").value;
+        const today = new Date().toISOString().split("T")[0];
+        if (inputDate < today) {
+          alert("不能选择过去的日期！");
+          return;
+        }
 
-      console.log("Payload JSON:", payload);
+        // ---------- Class/Airline validation ----------
+        const checkedClasses = document.querySelectorAll('#class-options input[type="checkbox"]:checked');
+        const checkedAirlines = document.querySelectorAll('#airline-options input[type="checkbox"]:checked');
 
-      // Save payload ONLY — loading.html will fetch API
-      sessionStorage.setItem("flight_payload", JSON.stringify(payload));
+        if (checkedClasses.length === 0 || checkedAirlines.length === 0) {
+          if (checkedClasses.length === 0) {
+            document.getElementById("class-button").textContent = "请至少选择一个舱等";
+            alert("请至少选择一个舱等");
+          }
+          if (checkedAirlines.length === 0) {
+            document.getElementById("airline-button").textContent = "请至少选择一个航空公司";
+            alert("请至少选择一个航空公司");
+          }
+          return; // stop form
+        }
 
-      // Build URL Params
-      const params = new URLSearchParams({
-        flightDate: payload.depart_date,
-        departure: payload.origin,
-        arrival: payload.destination,
-        directFlight: payload.stop_policy ? "true" : "false"
+        // ---------- Build payload ----------
+        const payload = {
+          airline: [...checkedAirlines].map(cb => cb.value).join(","),
+          origin: selectedDeparture,
+          destination: selectedArrival,
+          depart_date: inputDate,
+          cabin_class: [...checkedClasses].map(cb => cb.value).join(","),
+          stop_policy: document.getElementById("directFlight").checked ? "direct" : "any"
+        };
+
+        console.log("Payload JSON:", payload);
+
+        // Save payload for next page
+        sessionStorage.setItem("flight_payload", JSON.stringify(payload));
+
+        // Build URL Params
+        const params = new URLSearchParams({
+          flightDate: payload.depart_date,
+          departure: payload.origin,
+          arrival: payload.destination,
+          directFlight: payload.stop_policy === "direct" ? "true" : "false"
+        });
+
+        payload.cabin_class.split(",").forEach(c => params.append("class", c));
+        payload.airline.split(",").forEach(a => params.append("airline", a));
+
+        console.log("URL params:", params.toString());
+
+        // Redirect to loading page with params
+        window.location.href = "loading.html?" + params.toString();
+
       });
+    })();
 
-      payload.cabin_class.split(",").forEach(c => params.append("class", c));
-      payload.airline.split(",").forEach(a => params.append("airline", a));
-
-      console.log("URL params:", params.toString());
-
-      // --------------------
-      // Redirect WITH PARAMS
-      // --------------------
-      window.location.href = "loading.html?" + params.toString();
-    
-    });
-  </script>
-
-  <script>
     // ----------------------
     // 2. Update button text when checkboxes change
     // ----------------------
@@ -311,19 +309,12 @@
 
       const selected = [];
       checkboxes.forEach(cb => {
-        if (cb.checked) {
-          selected.push(cb.parentNode.textContent.trim());
-        }
+        if (cb.checked) selected.push(cb.parentNode.textContent.trim());
       });
 
-      if (selected.length > 0) {
-        button.textContent = selected.join(', ');
-      } else {
-        button.textContent = emptyMessage;
-      }
+      button.textContent = selected.length > 0 ? selected.join(', ') : emptyMessage;
     }
-  </script>
-
+</script>
 
 </body>
 </html>
