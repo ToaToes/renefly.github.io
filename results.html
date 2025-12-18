@@ -316,6 +316,11 @@
         return;
       }
 
+      if (stored.status === "no_ticket") {
+        resultContainer.innerHTML = "<p>目前没有票</p>";
+        return;
+      }
+
       const downstream = Array.isArray(stored.downstream) ? stored.downstream : [];
       // Collect all flights from all successful airlines
       const allFlights = [];
