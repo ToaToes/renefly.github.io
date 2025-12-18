@@ -1,6 +1,7 @@
 
 .progress-row {
   margin-bottom: 14px;
+  text-align: center; /* optional, helps center label and status */
 }
 
 .progress-label {
@@ -9,11 +10,12 @@
 }
 
 .progress-bar {
-  width: 100%;
+  width: 60%; /* make it smaller than full width */
   height: 14px;
   background: #eee;
   border-radius: 8px;
   overflow: hidden;
+  margin: 0 auto; /* center horizontally */
 }
 
 .progress-fill {
@@ -28,4 +30,5 @@
   margin-top: 2px;
   color: #666;
 }
+
 
