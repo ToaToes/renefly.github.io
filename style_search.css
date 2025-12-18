@@ -156,9 +156,14 @@ button[type="submit"]:hover {
 }
 
 
-.date-hidden {
+.date-wrapper {
+  position: relative;
+}
+
+#flightDate {
   position: absolute;
+  inset: 0;
   opacity: 0;
-  pointer-events: none;
+  cursor: pointer;
 }
 
