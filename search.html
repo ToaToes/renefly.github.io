@@ -223,8 +223,13 @@
         e.preventDefault(); // Prevent default form submit
 
         // ---------- Strict airport validation ----------
-        if (!selectedDeparture || !selectedArrival) {
-          alert("请从下拉列表选择有效的出发地和到达地！");
+        let invalidFields = [];
+
+        if (!selectedDeparture) invalidFields.push("出发地");
+        if (!selectedArrival) invalidFields.push("到达地");
+
+        if (invalidFields.length > 0) {
+          alert(`请从下拉列表选择有效的${invalidFields.join(" 和 ")}！`);
           return; // STOP submission
         }
 
