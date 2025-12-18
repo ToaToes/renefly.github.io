@@ -211,36 +211,23 @@
 
         // Ignore ping messages (keep-alive)
         if (msg.type === "ping") { return; }
-
-        if (msg.type === "flight_search_update") {
-            const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{"status":"pending","downstream":[]}');
-            storedResult.downstream.push(...msg.downstream);
-            storedResult.status = msg.status;
-            sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
-
-            if (msg.terminal) {
-                ws.close();
-                window.location.href = "results.html" + window.location.search;
-            }
-        }
-
-        const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{"status":"pending","downstream":[]}');
         
-        // Append any downstream messages
-        if (Array.isArray(msg.downstream) && msg.downstream.length > 0) {
-            storedResult.downstream.push(...msg.downstream);
-        } else if (msg.type === "flight_search_response") {
-            // Wrap top-level response into downstream for uniform handling
-            const wrapped = {
-                status: msg.status || "unknown",
-                results: msg.results || null,
-                error: msg.error || null
-            };
-            storedResult.downstream.push(wrapped);
+        // Get stored flight_result
+        const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{"status":"pending","downstream":[]}');
 
-            // Log errors immediately
-            if (wrapped.status === "error") {
-                console.error("Flight error:", wrapped.error?.message || wrapped.results);
+        // Only append messages once
+        if (msg.type === "flight_search_update" && Array.isArray(msg.downstream)) {
+            // Append downstream from update
+            storedResult.downstream.push(...msg.downstream);
+            storedResult.status = msg.status || storedResult.status;
+        } else if (msg.type === "flight_search_response") {
+            // Append single response message if not already included
+            const exists = storedResult.downstream.some(d => 
+                d.results?.uuid === msg.results?.uuid &&
+                d.status === msg.status
+            );
+            if (!exists) {
+                storedResult.downstream.push(msg);
             }
         }
 
@@ -252,32 +239,8 @@
 
         sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
 
-        // Keep a history log
-        const history = JSON.parse(sessionStorage.getItem("flight_history") || '[]');
-        if (Array.isArray(msg.downstream)) {
-            history.push(...msg.downstream);
-        } else if (msg.type === "flight_search_response") {
-            history.push({
-                status: msg.status || "unknown",
-                results: msg.results || null,
-                error: msg.error || null
-            });
-        }
-        sessionStorage.setItem("flight_history", JSON.stringify(history));
-
-        if (msg.terminal === true || storedResult.status === "done") {
-            // storedResult.status = "done";
-            // sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
-            console.log("All flights done or terminal message received, closing WS...");
-            ws.close();
-
-            // Redirect immediately if all done
-            window.location.href = "results.html" + window.location.search;
-        }
-
-        // Handle no_ticket specifically for immediate redirect
-        if (msg.type === "flight_search_response" && msg.status === "no_ticket") {
-            console.log("No ticket found, redirecting to results page...");
+        // Terminal / redirect logic
+        if (msg.terminal === true || storedResult.status === "done" || msg.status === "no_ticket") {
             ws.close();
             window.location.href = "results.html" + window.location.search;
         }
