@@ -148,6 +148,23 @@
       });
     });
 
+
+    // Close autocomplete results when clicking outside
+    document.addEventListener('click', function(e) {
+      const departureInput = document.getElementById('departure');
+      const arrivalInput = document.getElementById('arrival');
+      const departureResult = document.getElementById('departureResult');
+      const arrivalResult = document.getElementById('arrivalResult');
+
+      if (!departureInput.contains(e.target) && !departureResult.contains(e.target)) {
+        departureResult.innerHTML = '';
+      }
+
+      if (!arrivalInput.contains(e.target) && !arrivalResult.contains(e.target)) {
+        arrivalResult.innerHTML = '';
+      }
+    });
+
   </script>
 
   <!-- Press enter key to hit button -->
