@@ -158,10 +158,13 @@
 
       // Handle immediate no_ticket response
       if (data.status === "no_ticket") {
-          console.log("Initial search returned no_ticket, redirecting...");
-          sessionStorage.setItem("flight_result", JSON.stringify({ status: "done", downstream: [data] }));
+          console.log("No tickets found immediately, redirecting to results page...");
+          sessionStorage.setItem("flight_result", JSON.stringify({ 
+              status: "done", 
+              downstream: [data] 
+          }));
           window.location.href = "results.html" + window.location.search;
-          return; // stop further processing
+          return;  // Stop further processing (no WS needed)
       }
 
 
