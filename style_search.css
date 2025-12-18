@@ -114,13 +114,6 @@ button[type="submit"]:hover {
     background-color: grey
 }
 
-
-/* Ensure parent is relative for proper dropdown positioning */
-input[type="text"] {
-    position: relative; /* makes absolute dropdown inside align properly */
-}
-
-
 /* Autocomplete dropdown */
 #departureResult, #arrivalResult {
   position: absolute;
@@ -137,11 +130,17 @@ input[type="text"] {
 }
 
 /* Individual item in dropdown */
-#departureResult div, #arrivalResult div {
+#departureResult p, #arrivalResult p {
   padding: 8px 10px;
   cursor: pointer;
 }
 
-#departureResult div:hover, #arrivalResult div:hover {
+#departureResult p:hover, #arrivalResult p:hover {
   background-color: #f0f0f0;
+}
+
+.autocomplete-container {
+  position: relative; /* dropdown positions relative to this container */
+  width: 100%;
+  margin-bottom: 20px;
 }
