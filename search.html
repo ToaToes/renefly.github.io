@@ -218,6 +218,26 @@
 
       e.preventDefault(); // ← 确保先阻止默认刷新
 
+      // ---------- Strict airport validation ----------
+      if (!selectedDeparture || !selectedArrival) {
+        alert("请从下拉列表选择有效的出发地和到达地！");
+        return; // STOP submission
+      }
+
+      if (selectedDeparture === selectedArrival) {
+        alert("出发地和到达地不能相同");
+        return;
+      }
+
+      // ---------- Date validation ----------
+      const inputDate = document.getElementById("flightDate").value;
+      const today = new Date().toISOString().split("T")[0];
+      if (inputDate < today) {
+        alert("不能选择过去的日期！");
+        return;
+      }
+
+      // ---------- Class/Airline validation ----------
       const noClassChecked = document.querySelectorAll('#class-options input[type="checkbox"]:checked').length === 0;
       const noAirlineChecked = document.querySelectorAll('#airline-options input[type="checkbox"]:checked').length === 0;
 
@@ -235,23 +255,15 @@
         return; // stop form
       }
 
-      // date can not in the past
-      const inputDate = document.getElementById("flightDate").value;
-      const today = new Date().toISOString().split("T")[0];
-      if (inputDate < today) {
-        alert("不能选择过去的日期！");
-        return;
-      }
-
       // Build JSON payload for backend
       // Also MAP City (IATA) -> IATA only
       const payload = {
         airline: [...document.querySelectorAll('#airline-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
-        origin: (document.getElementById("departure").value.match(/\(([^)]+)\)/) || [])[1] || document.getElementById("departure").value,
-        destination: (document.getElementById("arrival").value.match(/\(([^)]+)\)/) || [])[1] || document.getElementById("arrival").value,
-        depart_date: document.getElementById("flightDate").value,
+        origin: selectedDeparture,
+        destination: selectedArrival,
+        depart_date: inputDate,
         cabin_class: [...document.querySelectorAll('#class-options input[type="checkbox"]:checked')].map(cb => cb.value).join(","),
-        stop_policy: document.getElementById("directFlight").checked ? "direct" : "any"
+        stop_policy: document.getElementById("directFlight").checked ? "direct" : "any" // true=direct only, false=any
       };
 
       console.log("Payload JSON:", payload);
@@ -312,40 +324,6 @@
     }
   </script>
 
-  <script>
-
-    // Form validation function
-    document.getElementById("flightForm").addEventListener("submit", function (e) {
-      const departure = document.getElementById("departure").value.trim();
-      const arrival = document.getElementById("arrival").value.trim();
-
-      if (departure.toLowerCase() === arrival.toLowerCase()) {
-        alert("出发地和到达地不能相同");
-        e.preventDefault();   // stop submit
-        return;
-      }
-
-      if (containsNumbers(departure)) {
-        alert("出发地不能包含数字");
-        e.preventDefault();
-        return;
-      }
-
-      if (containsNumbers(arrival)) {
-        alert("到达地不能包含数字");
-        e.preventDefault();
-        return;
-      }
-    });
-
-
-
-    // Function to check if a string contains any numbers
-    function containsNumbers(str) {
-      return /\d/.test(str); // Returns true if the string contains numbers
-    }
-
-  </script>
 
 </body>
 </html>
