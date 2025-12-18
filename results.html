@@ -276,12 +276,47 @@
       const allFlights = [];
       // store meta info per airline
       const metaMap = {};
+      
 
       downstream.forEach(item => {
-        if (item.status === "success" && Array.isArray(item.flights)) {
-          allFlights.push(...item.flights);
-          metaMap[item.results.airline] = item.results;
+        if (item.status !== "success") return;
+
+        let flights = [];
+
+        // Use flights array if exists
+        if (Array.isArray(item.flights) && item.flights.length > 0) {
+          flights.push(...item.flights);
         }
+
+        // Check payload for CX or other nested flights
+        if (item.payload) {
+          Object.values(item.payload).forEach(payloadPart => {
+            if (!payloadPart) return;
+
+            // CX-specific structure
+            if (payloadPart.CX_FINAL_RESULTS_by_cabin) {
+              Object.values(payloadPart.CX_FINAL_RESULTS_by_cabin).forEach(cabin => {
+                if (Array.isArray(cabin.flights)) flights.push(...cabin.flights);
+              });
+            }
+
+            // Generic flights array
+            if (Array.isArray(payloadPart.flights)) flights.push(...payloadPart.flights);
+          });
+        }
+
+        // Skip if no flights
+        if (flights.length === 0) return;
+
+        // Store meta info for this airline
+        const airlineCode = item.results?.airline || flights[0]?.flight_no?.slice(0, 2) || "未知航司";
+        metaMap[airlineCode] = item.results || {};
+
+        // Attach airlineCode to each flight
+        flights.forEach(f => f.airlineCode = airlineCode);
+
+        allFlights.push(...flights);
+
       });
 
       if (allFlights.length === 0) {
@@ -292,14 +327,21 @@
       // Group flights by airline
       const grouped = {};
       allFlights.forEach(f => {
-        const airlineCode = f.flight_no?.slice(0, 2) || metaMap[f.airline]?.airline || "未知航司";
+        const airlineCode = f.airlineCode || "未知航司";
         (grouped[airlineCode] ||= []).push(f);
+      });
+
+      // Sort airlines by name for display
+      const sortedAirlines = Object.keys(grouped).sort((a, b) => {
+        const nameA = AIRLINE_MAP[a] || a;
+        const nameB = AIRLINE_MAP[b] || b;
+        return nameA.localeCompare(nameB);
       });
 
       // Render results in a simple readable format
       let html = `<h3>共找到 ${allFlights.length} 个航班：</h3>`;
 
-      for (const airlineCode in grouped) {
+      sortedAirlines.forEach(airlineCode => {
         const airlineName = AIRLINE_MAP[airlineCode] || airlineCode;
         const meta = metaMap[airlineCode] || {};
 
@@ -330,22 +372,22 @@
             ">
               <strong>航班号：${flight.flight_no}</strong><br/>
               日期：${meta.depart_date || "—"}<br/>
-              出发机场：${flight.origin}<br/>
+              出发机场：${flight.origin || "—"}<br/>
               出发时间：${flight.depart_time || "—"}<br>
-              到达机场：${flight.destination}<br/>
+              到达机场：${flight.destination || "—"}<br/>
               到达时间：${flight.arrival_time || "—"}<br/>
               舱等：${mapCabinClass(meta.cabin_class)}<br/>
               中转次数：${flight.stop}<br/>
               中转机场：${flight.stop_airports || "—"}<br/>
               是否可兑换：${flight.can_redeem ? "是" : "否"}<br/>
-              <strong>价格：${flight.miles} 元</strong>
+              <strong>价格：${flight.miles || "—"} 元</strong>
             </li>
           `;
         });
 
         html += `</ul>`;
         
-      }
+      });
 
       resultContainer.innerHTML = html;
 
