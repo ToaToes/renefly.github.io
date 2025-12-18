@@ -195,16 +195,20 @@
   <script>
     const flightDateInput = document.getElementById("flightDate");
 
+    // set date min is today
+    const today = new Date().toISOString().split("T")[0];
+    flightDateInput.setAttribute("min", today);
+
     // Detect date change, then close the picker automatically
     flightDateInput.addEventListener("change", () => {
       // Blur removes focus, which closes the picker UI
       flightDateInput.blur(); // Close date picker
-      document.activeElement.blur(); // Also close virtual keyboard
+      //document.activeElement.blur(); // Also close virtual keyboard
     });
 
     // set date min is today
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("flightDate").setAttribute("min", today);
+    //const today = new Date().toISOString().split("T")[0];
+    //document.getElementById("flightDate").setAttribute("min", today); // <-- DO NOT set default value
   </script>
 
 
