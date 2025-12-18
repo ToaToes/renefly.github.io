@@ -1,7 +1,7 @@
 
 .progress-row {
+  width: 60%;
   margin-bottom: 14px;
-  /*text-align: center;  optional, helps center label and status */
 }
 
 .progress-label {
@@ -30,6 +30,5 @@
   margin-top: 2px;
   color: #666;
 }
-
 
 
