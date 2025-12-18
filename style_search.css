@@ -8,11 +8,12 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     background-color: #f9f9f9;
-    height: 90vh;
+    min-height: 100vh;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     flex-direction: column;
+    padding-top: 50px; /* for spacing */
 }
 
 /* Title */
@@ -87,6 +88,7 @@ button[type="submit"]:hover {
     overflow-y: auto;
     z-index: 1;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
 }
 
 /* Dropdown checkbox items */
@@ -113,20 +115,30 @@ button[type="submit"]:hover {
 }
 
 
-/* Limit the dropdown height and make it scrollable */
-#departureResult, #arrivalResult {
-  position: absolute;       /* keep it over the form, not pushing content */
-  background: white;
-  border: 1px solid #ccc;
-  max-height: 150px;        /* adjust as needed */
-  overflow-y: auto;         /* enable vertical scroll if too many items */
-  width: 100%;              /* match input width */
-  z-index: 1000;            /* stay on top */
-  box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+/* Ensure parent is relative for proper dropdown positioning */
+input[type="text"] {
+    position: relative; /* makes absolute dropdown inside align properly */
 }
 
+
+/* Autocomplete dropdown */
+#departureResult, #arrivalResult {
+  position: absolute;
+  top: 100%;               /* just below the input */
+  left: 0;
+  background: white;
+  border: 1px solid #ccc;
+  max-height: 150px;
+  overflow-y: auto;
+  width: calc(100% - 2px); /* account for input border */
+  z-index: 1000;
+  box-shadow: 0px 4px 6px rgba(0,0,0,0.15);
+  border-radius: 4px;
+}
+
+/* Individual item in dropdown */
 #departureResult div, #arrivalResult div {
-  padding: 8px;
+  padding: 8px 10px;
   cursor: pointer;
 }
 
