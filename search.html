@@ -66,19 +66,22 @@
   <form id="flightForm">
     <!-- Ban user from choosing previous date before today -->
     <label for="flightDate">日期:</label>
-    <input
-      type="text"
-      id="flightDateText"
-      placeholder="请选择日期"
-      readonly
-      class="input-common"
-    />
-    
-    <input
-      type="date"
-      id="flightDate"
-      class="date-hidden"
-    />
+
+    <div class="date-wrapper">
+      <input
+        type="text"
+        id="flightDateText"
+        placeholder="请选择日期"
+        readonly
+        class="input-common"
+      />
+
+      <input
+        type="date"
+        id="flightDate"
+      />
+    </div>
+
 
     <label for="departure">出发地:</label>
     <div class="autocomplete-container">
@@ -210,10 +213,10 @@
     const fakeDate = document.getElementById("flightDateText");
 
     // set min date (today)
-    const today = new Date().toISOString().split("T")[0];
-    realDate.min = today;
+    realDate.min = new Date().toISOString().split("T")[0];
 
     // open native picker only on user intent
+    /*
     fakeDate.addEventListener("click", () => {
       if (realDate.showPicker) {
         realDate.showPicker();
@@ -221,10 +224,14 @@
         realDate.focus(); // fallback
       }
     });
+    */
 
     // sync selected date
     realDate.addEventListener("change", () => {
       fakeDate.value = realDate.value;
+
+      // force close picker
+      // realDate.blur();
     });
 
   </script>
