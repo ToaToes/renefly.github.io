@@ -215,27 +215,42 @@
         // Get stored flight_result
         const storedResult = JSON.parse(sessionStorage.getItem("flight_result") || '{"status":"pending","downstream":[]}');
 
-        // Only append messages once
-        if (msg.type === "flight_search_update" && Array.isArray(msg.downstream)) {
-            // Append downstream from update
-            storedResult.downstream.push(...msg.downstream);
-            storedResult.status = msg.status || storedResult.status;
-        } else if (msg.type === "flight_search_response") {
-            // Append single response message if not already included
-            const exists = storedResult.downstream.some(d => 
-                d.results?.uuid === msg.results?.uuid &&
-                d.status === msg.status
-            );
-            if (!exists) {
-                storedResult.downstream.push(msg);
+        // Deduplicate by UUID & prioritize success over pending
+        const latestFlights = {};
+        storedResult.downstream.forEach(d => {
+            const uuid = d.results?.uuid;
+            if (!uuid) return;
+            if (!latestFlights[uuid] || (latestFlights[uuid].status === "pending" && d.status !== "pending")) {
+                latestFlights[uuid] = d;
             }
+        });
+
+        // Include the new message
+        if (msg.type === "flight_search_response") {
+            const uuid = msg.results?.uuid;
+            if (uuid) {
+                const existing = latestFlights[uuid];
+                if (!existing || (existing.status === "pending" && msg.status !== "pending")) {
+                    latestFlights[uuid] = msg;
+                }
+            }
+        } else if (msg.type === "flight_search_update" && Array.isArray(msg.downstream)) {
+            msg.downstream.forEach(d => {
+                const uuid = d.results?.uuid;
+                if (!uuid) return;
+                const existing = latestFlights[uuid];
+                if (!existing || (existing.status === "pending" && d.status !== "pending")) {
+                    latestFlights[uuid] = d;
+                }
+            });
         }
 
-        // Update stored flight_result status
-        const allDone = storedResult.downstream.every(d =>
-            ["success", "error", "no_ticket", "fail", "STOP", "stopped"].includes(d.status)
-        );
-        storedResult.status = allDone ? "done" : "pending";
+        storedResult.downstream = Object.values(latestFlights);
+
+        // Update overall status
+        storedResult.status = storedResult.downstream.every(d => 
+            ["success", "no_ticket", "error", "fail", "STOP", "stopped"].includes(d.status)
+        ) ? "done" : "pending";
 
         sessionStorage.setItem("flight_result", JSON.stringify(storedResult));
 
