@@ -120,11 +120,3 @@ document.addEventListener('click', e => {
   });
 });
 
-// Validate on form submission
-document.getElementById('flightForm').addEventListener('submit', e => {
-  if (!selectedDeparture || !selectedArrival) {
-    e.preventDefault();
-    alert("请从下拉列表选择有效的出发地和到达地！");
-    return;
-  }
-});
