@@ -10,7 +10,22 @@ fetch('airports.json')
   .then(response => response.json())
   .then(data => {
     airportData = data;
-    dataReady = true; // Set the flag to true when data is loaded
+    
+    //dataReady = true; // Set the flag to true when data is loaded
+
+    // Now attach event listeners
+    const departureInput = document.getElementById('departure');
+    const arrivalInput = document.getElementById('arrival');
+
+    departureInput.addEventListener('input', (e) => {
+      const matches = searchAirportsByCity(e.target.value);
+      displayMatches(matches, 'departureResult', 'departure');
+    });
+
+    arrivalInput.addEventListener('input', (e) => {
+      const matches = searchAirportsByCity(e.target.value);
+      displayMatches(matches, 'arrivalResult', 'arrival');
+    });
   });
 
 function searchAirportsByCity(input) {
