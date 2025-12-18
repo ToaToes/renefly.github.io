@@ -168,22 +168,6 @@
     });
 
 
-    // Close autocomplete results when clicking outside
-    document.addEventListener('click', function(e) {
-      const departureInput = document.getElementById('departure');
-      const arrivalInput = document.getElementById('arrival');
-      const departureResult = document.getElementById('departureResult');
-      const arrivalResult = document.getElementById('arrivalResult');
-
-      if (!departureInput.contains(e.target) && !departureResult.contains(e.target)) {
-        departureResult.innerHTML = '';
-      }
-
-      if (!arrivalInput.contains(e.target) && !arrivalResult.contains(e.target)) {
-        arrivalResult.innerHTML = '';
-      }
-    });
-
   </script>
 
   <!-- Press enter key to hit button -->
@@ -214,17 +198,6 @@
 
     // set min date (today)
     realDate.min = new Date().toISOString().split("T")[0];
-
-    // open native picker only on user intent
-    /*
-    fakeDate.addEventListener("click", () => {
-      if (realDate.showPicker) {
-        realDate.showPicker();
-      } else {
-        realDate.focus(); // fallback
-      }
-    });
-    */
 
     // sync selected date
     realDate.addEventListener("change", () => {
