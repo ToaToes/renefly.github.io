@@ -195,90 +195,16 @@
       const realDate = document.getElementById("flightDate");
       const fakeDate = document.getElementById("flightDateText");
   
+      let isPickerOpen = false;
+  
       // Open picker when clicking fake input
       fakeDate.addEventListener("click", () => {
           realDate.showPicker?.();
+          isPickerOpen = true;
       });
   
-      // Sync value & close picker
-      realDate.addEventListener("change", () => {
-          fakeDate.value = realDate.value;
-          
-          // Multiple approaches to close the picker
-          closeDatePicker();
-      });
-  
-      // Also handle input event for immediate response
-      realDate.addEventListener("input", () => {
-          fakeDate.value = realDate.value;
-      });
-  
-      // Click outside closes picker
+      // Close picker when clicking outside (only when picker is open)
       document.addEventListener("mousedown", (e) => {
-          if (!realDate.contains(e.target) && !fakeDate.contains(e.target)) {
-              closeDatePicker();
-          }
-      });
-  
-      // Also handle escape key
-      document.addEventListener("keydown", (e) => {
-          if (e.key === "Escape") {
-              closeDatePicker();
-          }
-      });
-  
-      function closeDatePicker() {
-          // Method 1: Remove focus and blur
-          realDate.blur();
-          
-          // Method 2: Temporarily disable (helps in some browsers)
-          realDate.disabled = true;
-          
-          // Method 3: Change type temporarily (works in some browsers)
-          const originalType = realDate.type;
-          realDate.type = 'text';
-          
-          // Method 4: Remove from DOM and re-add (nuclear option)
-          setTimeout(() => {
-              // Restore type
-              realDate.type = originalType;
-              
-              // Re-enable
-              realDate.disabled = false;
-              
-              // Method 5: Focus on another element
-              fakeDate.focus();
-              fakeDate.blur();
-          }, 50);
-          
-          // Additional: Force focus on body
-          document.activeElement.blur();
-          document.body.focus();
-      }
-  
-      // Alternative approach: Use setTimeout with focus shift
-      realDate.addEventListener("focus", () => {
-          // When real date gets focus (picker opens), track it
-          realDate.dataset.pickerOpen = "true";
-      });
-  
-      realDate.addEventListener("blur", () => {
-          // When real date loses focus, update
-          delete realDate.dataset.pickerOpen;
-      });
-  
-      // Special handling for mobile browsers
-      let isPickerOpen = false;
-      
-      fakeDate.addEventListener("touchstart", (e) => {
-          if (!isPickerOpen) {
-              realDate.showPicker?.();
-              isPickerOpen = true;
-              e.preventDefault();
-          }
-      });
-  
-      document.addEventListener("touchstart", (e) => {
           if (isPickerOpen && 
               !realDate.contains(e.target) && 
               !fakeDate.contains(e.target)) {
@@ -287,12 +213,71 @@
           }
       });
   
+      // Also handle escape key (only when picker is open)
+      document.addEventListener("keydown", (e) => {
+          if (isPickerOpen && e.key === "Escape") {
+              closeDatePicker();
+              isPickerOpen = false;
+          }
+      });
+  
+      // Sync value & close picker
+      realDate.addEventListener("change", () => {
+          fakeDate.value = realDate.value;
+          closeDatePicker();
+          isPickerOpen = false;
+      });
+  
+      // Also handle input event for immediate response
+      realDate.addEventListener("input", () => {
+          fakeDate.value = realDate.value;
+      });
+  
+      function closeDatePicker() {
+          // Method 1: Remove focus and blur
+          realDate.blur();
+          
+          // Method 2: Temporarily disable
+          realDate.disabled = true;
+          
+          // Method 3: Change type temporarily
+          const originalType = realDate.type;
+          realDate.type = 'text';
+          
+          setTimeout(() => {
+              // Restore everything
+              realDate.type = originalType;
+              realDate.disabled = false;
+              
+              // Focus on fake input to ensure picker closes
+              fakeDate.focus();
+              fakeDate.blur();
+          }, 50);
+          
+          // Force blur on active element
+          document.activeElement?.blur();
+      }
+  
+      // Track when picker opens/closes via focus events
+      realDate.addEventListener("focus", () => {
+          isPickerOpen = true;
+      });
+  
+      realDate.addEventListener("blur", () => {
+          // Small delay to allow change event to fire first
+          setTimeout(() => {
+              isPickerOpen = false;
+          }, 100);
+      });
+  
+      // Remove the touchstart event listeners entirely as they conflict with typing
+      // or modify them to be more specific
+  
       // Initialize
       realDate.value = "";
       fakeDate.value = "";
       realDate.min = new Date().toISOString().split("T")[0];
   </script>
-
 
   <!-- submit -->
   <script>
