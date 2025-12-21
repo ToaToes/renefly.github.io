@@ -191,44 +191,107 @@
   </script>
 
 
-  <script>
-    const realDate = document.getElementById("flightDate");
-    const fakeDate = document.getElementById("flightDateText");
+   <script>
+      const realDate = document.getElementById("flightDate");
+      const fakeDate = document.getElementById("flightDateText");
   
-    // Open picker when clicking fake input
-    fakeDate.addEventListener("click", () => {
-      realDate.showPicker?.();
-    });
+      // Open picker when clicking fake input
+      fakeDate.addEventListener("click", () => {
+          realDate.showPicker?.();
+      });
   
-    // Sync value & FORCE close picker
-    realDate.addEventListener("change", () => {
-      fakeDate.value = realDate.value;
+      // Sync value & close picker
+      realDate.addEventListener("change", () => {
+          fakeDate.value = realDate.value;
+          
+          // Multiple approaches to close the picker
+          closeDatePicker();
+      });
   
-      // Force-close picker
-      realDate.blur();
-      realDate.disabled = true;
+      // Also handle input event for immediate response
+      realDate.addEventListener("input", () => {
+          fakeDate.value = realDate.value;
+      });
   
-      // Re-enable after close
-      setTimeout(() => {
-        realDate.disabled = false;
-      }, 100);
-    });
+      // Click outside closes picker
+      document.addEventListener("mousedown", (e) => {
+          if (!realDate.contains(e.target) && !fakeDate.contains(e.target)) {
+              closeDatePicker();
+          }
+      });
   
-    // Click outside closes picker
-    document.addEventListener("mousedown", (e) => {
-      if (!realDate.contains(e.target) && !fakeDate.contains(e.target)) {
-        realDate.blur();
+      // Also handle escape key
+      document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+              closeDatePicker();
+          }
+      });
+  
+      function closeDatePicker() {
+          // Method 1: Remove focus and blur
+          realDate.blur();
+          
+          // Method 2: Temporarily disable (helps in some browsers)
+          realDate.disabled = true;
+          
+          // Method 3: Change type temporarily (works in some browsers)
+          const originalType = realDate.type;
+          realDate.type = 'text';
+          
+          // Method 4: Remove from DOM and re-add (nuclear option)
+          setTimeout(() => {
+              // Restore type
+              realDate.type = originalType;
+              
+              // Re-enable
+              realDate.disabled = false;
+              
+              // Method 5: Focus on another element
+              fakeDate.focus();
+              fakeDate.blur();
+          }, 50);
+          
+          // Additional: Force focus on body
+          document.activeElement.blur();
+          document.body.focus();
       }
-    });
   
-    // Prevent auto-pick
-    realDate.value = "";
-    fakeDate.value = "";
+      // Alternative approach: Use setTimeout with focus shift
+      realDate.addEventListener("focus", () => {
+          // When real date gets focus (picker opens), track it
+          realDate.dataset.pickerOpen = "true";
+      });
   
-    // Min date
-    realDate.min = new Date().toISOString().split("T")[0];
+      realDate.addEventListener("blur", () => {
+          // When real date loses focus, update
+          delete realDate.dataset.pickerOpen;
+      });
+  
+      // Special handling for mobile browsers
+      let isPickerOpen = false;
+      
+      fakeDate.addEventListener("touchstart", (e) => {
+          if (!isPickerOpen) {
+              realDate.showPicker?.();
+              isPickerOpen = true;
+              e.preventDefault();
+          }
+      });
+  
+      document.addEventListener("touchstart", (e) => {
+          if (isPickerOpen && 
+              !realDate.contains(e.target) && 
+              !fakeDate.contains(e.target)) {
+              closeDatePicker();
+              isPickerOpen = false;
+          }
+      });
+  
+      // Initialize
+      realDate.value = "";
+      fakeDate.value = "";
+      realDate.min = new Date().toISOString().split("T")[0];
   </script>
-  
 
 
   <!-- submit -->
