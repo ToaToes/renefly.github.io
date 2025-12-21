@@ -192,25 +192,36 @@
 
 
   <script>
-    // Custom date picker handling
     const realDate = document.getElementById("flightDate");
     const fakeDate = document.getElementById("flightDateText");
-
-    // set min date (today)
-    realDate.min = new Date().toISOString().split("T")[0];
-
-    // sync selected date
+  
+    // PC + mobile-safe
+    fakeDate.addEventListener("click", () => {
+      if (realDate.showPicker) {
+        realDate.showPicker();     // Desktop browsers
+      } else {
+        realDate.focus();          // Fallback
+      }
+    });
+  
+    // Sync chosen date
     realDate.addEventListener("change", () => {
       fakeDate.value = realDate.value;
-
-      // Only blur on non-touch devices (desktop)
-      // detect if its mobile or desktop
+  
+      // Desktop blur only
       if (!('ontouchstart' in window)) {
         realDate.blur();
       }
     });
-
+  
+    // Prevent auto-pick on mobile
+    realDate.value = "";
+    fakeDate.value = "";
+  
+    // Min date
+    realDate.min = new Date().toISOString().split("T")[0];
   </script>
+
 
 
   <!-- submit -->
