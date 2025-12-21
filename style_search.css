@@ -164,6 +164,7 @@ button[type="submit"]:hover {
   position: absolute;
   inset: 0;
   opacity: 0;
-  cursor: pointer;
+  pointer-events: none; /* important: prevent accidental mobile auto-open */
 }
+
 
