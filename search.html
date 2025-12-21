@@ -197,30 +197,27 @@
   
     // Open picker when clicking fake input
     fakeDate.addEventListener("click", () => {
-      if (realDate.showPicker) {
-        realDate.showPicker();
-      } else {
-        realDate.focus();
-      }
+      realDate.showPicker?.();
     });
   
-    // Sync value & close after selection
+    // Sync value & FORCE close picker
     realDate.addEventListener("change", () => {
       fakeDate.value = realDate.value;
   
-      // Close picker on desktop
-      if (!('ontouchstart' in window)) {
-        realDate.blur();
-      }
+      // Force-close picker
+      realDate.blur();
+      realDate.disabled = true;
+  
+      // Re-enable after close
+      setTimeout(() => {
+        realDate.disabled = false;
+      }, 100);
     });
   
-    // CLOSE picker when clicking anywhere outside
+    // Click outside closes picker
     document.addEventListener("mousedown", (e) => {
-      if (
-        !realDate.contains(e.target) &&
-        !fakeDate.contains(e.target)
-      ) {
-        realDate.blur(); // closes desktop date picker
+      if (!realDate.contains(e.target) && !fakeDate.contains(e.target)) {
+        realDate.blur();
       }
     });
   
@@ -231,7 +228,7 @@
     // Min date
     realDate.min = new Date().toISOString().split("T")[0];
   </script>
-
+  
 
 
   <!-- submit -->
