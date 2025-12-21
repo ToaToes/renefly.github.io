@@ -88,6 +88,21 @@
       return classes.join(", ");
     }
 
+
+    // Map IATA and City from search html
+    const AIRPORT_DISPLAY_MAP = (() => {
+      try {
+        return JSON.parse(sessionStorage.getItem("airport_display_map")) || {};
+      } catch {
+        return {};
+      }
+    })();
+
+    function mapAirport(code) {
+      if (!code) return "—";
+      return AIRPORT_DISPLAY_MAP[code] || code;
+    }
+
   </script>
 
   <script>
@@ -125,8 +140,8 @@
     // Prepare displayed data
     const selectionData = {
       "日期": getValue("flightDate"),
-      "出发地": getValue("departure"),
-      "到达地": getValue("arrival"),
+      "出发地": mapAirport(getValue("departure")),
+      "到达地": mapAirport(getValue("arrival")),
       
       // multiple values support
       "舱等": (() => {
@@ -372,9 +387,9 @@
             ">
               <strong>航班号：${flight.flight_no}</strong><br/>
               日期：${meta.depart_date || "—"}<br/>
-              出发机场：${flight.origin_airport || "—"}<br/>
+              出发机场：${mapAirport(flight.origin_airport)}<br/>
               出发时间：${flight.depart_time || "—"}<br>
-              到达机场：${flight.dest_airport || "—"}<br/>
+              到达机场：${mapAirport(flight.dest_airport)}<br/>
               到达时间：${flight.arrival_time || "—"}<br/>
               舱等：${mapCabinClass(meta.cabin_class)}<br/>
               中转次数：${flight.stop}<br/>
