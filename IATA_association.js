@@ -15,6 +15,11 @@ let selectedArrival = null;
 fetch('airports.json')
   .then(response => response.json())
   .then(data => {
+
+    // Clear map on page load
+    airportDisplayMap = {};
+    sessionStorage.removeItem("airport_display_map");
+
     airportData = data;
     
     dataReady = true; // Set the flag to true when data is loaded
@@ -99,8 +104,18 @@ function displayMatches(matches, containerId, inputId) {
 
     // classic autocomplete state bug workaround:
     // on every input, invalidate previous selection
-    if (inputId === 'departure') selectedDeparture = null;
-    if (inputId === 'arrival') selectedArrival = null;
+    const label = `${city} (${iata})`;
+
+    airportDisplayMap[iata] = label;
+    
+    if (inputId === 'departure') selectedDeparture = iata;
+    if (inputId === 'arrival') selectedArrival = iata;
+    
+    // Persist for next page
+    sessionStorage.setItem(
+      "airport_display_map",
+      JSON.stringify(airportDisplayMap)
+    );
     
     if (value === '') {
       container.innerHTML = '';
