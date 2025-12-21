@@ -192,105 +192,28 @@
 
 
    <script>
-      const realDate = document.getElementById("flightDate");
-      const fakeDate = document.getElementById("flightDateText");
-          
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  
-      let isPickerOpen = false;
-  
-      // Open picker when clicking fake input
-      fakeDate.addEventListener("click", () => {
-          realDate.dataset.userSelected = "";
-          realDate.showPicker?.();
-          isPickerOpen = true;
-      });
-  
-      // Close picker when clicking outside (only when picker is open)
-      document.addEventListener("mousedown", (e) => {
-          if (isPickerOpen && 
-              !realDate.contains(e.target) && 
-              !fakeDate.contains(e.target)) {
-              closeDatePicker();
-              isPickerOpen = false;
-          }
-      });
+    const realDate = document.getElementById("flightDate");
+    const fakeDate = document.getElementById("flightDateText");
+    
+    // Get today (yyyy-mm-dd)
+    const today = new Date().toISOString().split("T")[0];
+    
+    // Set default to today
+    realDate.value = today;
+    fakeDate.value = today;
+    realDate.min = today;
+    
+    // Open native picker
+    fakeDate.addEventListener("click", () => {
+      realDate.showPicker?.();
+      realDate.focus();
+    });
+    
+    // Sync when user selects another date
+    realDate.addEventListener("change", () => {
+      fakeDate.value = realDate.value;
+    });
 
-  
-      // Also handle escape key (only when picker is open)
-      document.addEventListener("keydown", (e) => {
-          if (isPickerOpen && e.key === "Escape") {
-              closeDatePicker();
-              isPickerOpen = false;
-          }
-      });
-  
-      // Sync value & close picker
-      realDate.addEventListener("change", () => {
-          // For Mobile
-          realDate.dataset.userSelected = "true";
-          fakeDate.value = realDate.value;
-          closeDatePicker();
-          isPickerOpen = false;
-      });
-  
-      // Also handle input event for immediate response
-      realDate.addEventListener("input", () => {
-          fakeDate.value = realDate.value;
-      });
-
-      function closeDatePicker() {
-          // Method 1: Remove focus and blur
-          realDate.blur();
-          
-          // Method 2: Temporarily disable
-          realDate.disabled = true;
-          
-          // Method 3: Change type temporarily
-          const originalType = realDate.type;
-          realDate.type = 'text';
-          
-          setTimeout(() => {
-              // Restore everything
-              realDate.type = originalType;
-              realDate.disabled = false;
-              
-              // Focus on fake input to ensure picker closes
-              fakeDate.focus();
-              fakeDate.blur();
-          }, 50);
-          
-          // Force blur on active element
-          document.activeElement?.blur();
-      }
-  
-      // Track when picker opens/closes via focus events
-      realDate.addEventListener("focus", () => {
-          isPickerOpen = true;
-          if (!isMobile) return; 
-        
-          // Mobile browsers auto-fill today's date on open → clear it
-          setTimeout(() => {
-              if (!realDate.dataset.userSelected) {
-                  realDate.value = "";
-              }
-          }, 0);
-      });
-  
-      realDate.addEventListener("blur", () => {
-          // Small delay to allow change event to fire first
-          setTimeout(() => {
-              isPickerOpen = false;
-          }, 100);
-      });
-  
-      // Remove the touchstart event listeners entirely as they conflict with typing
-      // or modify them to be more specific
-  
-      // Initialize
-      realDate.value = "";
-      fakeDate.value = "";
-      realDate.min = new Date().toISOString().split("T")[0];
   </script>
 
   <!-- submit -->
