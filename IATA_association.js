@@ -1,5 +1,7 @@
 let airportData = {};
 
+let airportDisplayMap = {};
+
 // Add a dataReady flag to ensure you don’t search before data is available.
 // search immediately after the fetch, but the fetch is asynchronous — 
 // so when the input event first fires, the data might not have loaded yet, and airportData is still {}
