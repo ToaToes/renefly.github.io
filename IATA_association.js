@@ -1,5 +1,8 @@
-let airportData = {};
+// -----------------------------
+// Global state
+// -----------------------------
 
+let airportData = {};
 let airportDisplayMap = {};
 
 // Add a dataReady flag to ensure you don’t search before data is available.
@@ -12,6 +15,9 @@ let selectedDeparture = null;
 let selectedArrival = null;
 
 
+// -----------------------------
+// Load airport data
+// -----------------------------
 fetch('airports.json')
   .then(response => response.json())
   .then(data => {
@@ -21,7 +27,6 @@ fetch('airports.json')
     sessionStorage.removeItem("airport_display_map");
 
     airportData = data;
-    
     dataReady = true; // Set the flag to true when data is loaded
 
     // Clear selectedDeparture / selectedArrival on page load
@@ -33,12 +38,16 @@ fetch('airports.json')
   })
   .catch(err => console.error("Failed to load airports.json:", err));
 
+
+// -----------------------------
+// Search logic
+// -----------------------------
 function searchAirportsByCity(input) {
   if (!input || (input.trim() == "")) return [];
 
   const lowercaseInput = input.trim().toLowerCase();
-
   const matches = [];
+  
   for (const code in airportData) {
     const airport = airportData[code];
     if (!airport.iata) continue;
@@ -54,6 +63,10 @@ function searchAirportsByCity(input) {
   return matches;
 }
 
+
+// -----------------------------
+// Render autocomplete results
+// -----------------------------
 function displayMatches(matches, containerId, inputId) {
   const container = document.getElementById(containerId);
   if (!matches || matches.length === 0) {
@@ -74,12 +87,19 @@ function displayMatches(matches, containerId, inputId) {
 
   container.style.display = 'block';
 
-  // Click handler for each option
+  
+  // -----------------------------
+  // Click = FINAL SELECTION
+  // -----------------------------
   container.querySelectorAll('p.airport-option').forEach(option => {
     option.addEventListener('click', () => {
+      
       const city = option.getAttribute('data-city');
       const iata = option.getAttribute('data-iata');
+
+      // Update input display
       document.getElementById(inputId).value = `${city} (${iata})`;
+      
       container.innerHTML = '';
       container.style.display = 'none';
 
@@ -87,11 +107,21 @@ function displayMatches(matches, containerId, inputId) {
       if (inputId === 'departure') selectedDeparture = iata;
       if (inputId === 'arrival') selectedArrival = iata;
 
+      // Save display label for results page
+      airportDisplayMap[iata] = `${city} (${iata})`;
+
+      sessionStorage.setItem(
+        "airport_display_map",
+        JSON.stringify(airportDisplayMap)
+      );
     });
   });
 }
 
-// Attach input listeners once
+
+// -----------------------------
+// Attach input listeners
+// -----------------------------
 ['departure', 'arrival'].forEach(inputId => {
   const input = document.getElementById(inputId);
   const containerId = inputId + 'Result';
@@ -104,18 +134,8 @@ function displayMatches(matches, containerId, inputId) {
 
     // classic autocomplete state bug workaround:
     // on every input, invalidate previous selection
-    const label = `${city} (${iata})`;
-
-    airportDisplayMap[iata] = label;
-    
-    if (inputId === 'departure') selectedDeparture = iata;
-    if (inputId === 'arrival') selectedArrival = iata;
-    
-    // Persist for next page
-    sessionStorage.setItem(
-      "airport_display_map",
-      JSON.stringify(airportDisplayMap)
-    );
+    if (inputId === 'departure') selectedDeparture = null;
+    if (inputId === 'arrival') selectedArrival = null;
     
     if (value === '') {
       container.innerHTML = '';
@@ -128,12 +148,16 @@ function displayMatches(matches, containerId, inputId) {
   });
 });
 
-// Optional: hide autocomplete when clicking outside
+
+// ---------------------------------------
+// Hide autocomplete when clicking outside
+// ---------------------------------------
 document.addEventListener('click', e => {
   ['departureResult', 'arrivalResult'].forEach(containerId => {
     const container = document.getElementById(containerId);
     const input = document.getElementById(containerId.replace('Result', ''));
-    if (!container.contains(e.target) && !input.contains(e.target)) {
+    
+    if (container && !container.contains(e.target) && !input.contains(e.target)) {
       container.innerHTML = '';
       container.style.display = 'none';
     }
