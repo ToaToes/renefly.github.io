@@ -199,6 +199,7 @@
   
       // Open picker when clicking fake input
       fakeDate.addEventListener("click", () => {
+          realDate.dataset.userSelected = "";
           realDate.showPicker?.();
           isPickerOpen = true;
       });
@@ -212,6 +213,7 @@
               isPickerOpen = false;
           }
       });
+
   
       // Also handle escape key (only when picker is open)
       document.addEventListener("keydown", (e) => {
@@ -223,6 +225,8 @@
   
       // Sync value & close picker
       realDate.addEventListener("change", () => {
+          // For Mobile
+          realDate.dataset.userSelected = "true";
           fakeDate.value = realDate.value;
           closeDatePicker();
           isPickerOpen = false;
@@ -261,6 +265,12 @@
       // Track when picker opens/closes via focus events
       realDate.addEventListener("focus", () => {
           isPickerOpen = true;
+          // Mobile browsers auto-fill today's date on open → clear it
+          setTimeout(() => {
+              if (!realDate.dataset.userSelected) {
+                  realDate.value = "";
+              }
+          }, 0);
       });
   
       realDate.addEventListener("blur", () => {
