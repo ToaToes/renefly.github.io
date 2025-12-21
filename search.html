@@ -195,26 +195,36 @@
     const realDate = document.getElementById("flightDate");
     const fakeDate = document.getElementById("flightDateText");
   
-    // PC + mobile-safe
+    // Open picker when clicking fake input
     fakeDate.addEventListener("click", () => {
       if (realDate.showPicker) {
-        realDate.showPicker();     // Desktop browsers
+        realDate.showPicker();
       } else {
-        realDate.focus();          // Fallback
+        realDate.focus();
       }
     });
   
-    // Sync chosen date
+    // Sync value & close after selection
     realDate.addEventListener("change", () => {
       fakeDate.value = realDate.value;
   
-      // Desktop blur only
+      // Close picker on desktop
       if (!('ontouchstart' in window)) {
         realDate.blur();
       }
     });
   
-    // Prevent auto-pick on mobile
+    // CLOSE picker when clicking anywhere outside
+    document.addEventListener("mousedown", (e) => {
+      if (
+        !realDate.contains(e.target) &&
+        !fakeDate.contains(e.target)
+      ) {
+        realDate.blur(); // closes desktop date picker
+      }
+    });
+  
+    // Prevent auto-pick
     realDate.value = "";
     fakeDate.value = "";
   
