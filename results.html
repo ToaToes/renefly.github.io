@@ -286,6 +286,11 @@
         return;
       }
 
+      if (stored.status === "STOP") {
+        resultContainer.innerHTML = "<p>系统升级，请联系工作人员...</p>";
+        return;
+      }
+
       const downstream = Array.isArray(stored.downstream) ? stored.downstream : [];
       // Collect all flights from all successful airlines
       const allFlights = [];
